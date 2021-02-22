@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Phork.Blazor</RootNamespace>
+    <Authors>Phorks</Authors>
+    <PackageIcon>phorksc-128x128.png</PackageIcon>
+    <RepositoryUrl>https://github.com/phorks/phork-blazor</RepositoryUrl>
+    <PackageTags>dotnet;dotnetcore;blazor;intoifypropertychanged;inotifycollectionchanged;reactivity</PackageTags>
+    <Description>Use INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically manage the state of your Blazor components.</Description>
+    <Copyright>Copyright © 2021 Phorks</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\phork-common\src\Phork.Common\Phork.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\lib\phork-common\assets\phorksc-128x128.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

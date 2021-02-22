@@ -1,0 +1,3 @@
+[submodule "lib/phork-common"]
+	path = lib/phork-common
+	url = https://github.com/phorks/phork-common
