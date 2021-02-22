@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 5.0.x
         
     - name: Publish the Blazor Project
-      run : dotnet publish ./samples/ReactivityDemo/ReactivityDemo.csproj -c Release -o release/reacitivity-demo --nologo
+      run : dotnet publish ./samples/ReactivityDemo/ReactivityDemo.csproj -c Release -o release/reactivity-demo --nologo
       
     - name: Commit wwwroot to Github Pages
       uses: JamesIves/github-pages-deploy-action@4.0.0
