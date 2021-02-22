@@ -12,7 +12,7 @@ By using this library:
 
 This is the official documentation of the library.
 
-If you prefer learning with examples and want to see the motivation behind the concepts of this library the following document can help you:
+If you prefer to learn with examples and want to see the motivation behind the concepts of this library the following document can help you:
 
 * [Phork.Blazor.Reactivity in Action](./REACTIVITY-IN-ACTION.md)
 
