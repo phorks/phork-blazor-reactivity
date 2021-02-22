@@ -87,7 +87,7 @@ Dog Name: @Observed(() => Person.Dog.Name)
     }
 </ul>
 
-<ReactivityChild Person="Person" />
+<ChildComponent Person="Person" />
 ```
 
 ## MvvmBlazor
