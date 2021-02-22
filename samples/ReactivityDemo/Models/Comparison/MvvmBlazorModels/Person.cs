@@ -1,4 +1,5 @@
 ﻿using MvvmBlazor.ViewModel;
+using ReactivityDemo.Helpers;
 using System.Collections.ObjectModel;
 
 namespace ReactivityDemo.Models.Comparison.MvvmBlazorModels
@@ -12,7 +13,7 @@ namespace ReactivityDemo.Models.Comparison.MvvmBlazorModels
             set => this.Set(ref this._name, value);
         }
 
-        public Dog _dog = new Dog() { Name = "Pammy" };
+        public Dog _dog = new Dog() { Name = StringHelper.RandomString() };
         public Dog Dog
         {
             get => this._dog;
