@@ -7,7 +7,7 @@ By using this library:
 * You can use reactive one-way and two-way (in combination with `@bind` directive) bindings that can make the component re-render if any `INotifyPropertyChanged` instance in the binding path raises `PropertyChanged` event.
 * You can use nested properties as the binding path.
 * If the binding source in a one-way binding implements `INotifyCollectionChanged`, its `CollectionChanged` event will make the component re-render.
-* You can use optional converters with bindings if the binding source and target have different types and/or additional logic is required in your binding.
+* You can optionally use converters with bindings if the binding source and target have different types and/or additional logic is required in your binding.
 * You don't need to worry about memory leaks and unnecessary re-renders as the library will take care unsubscribing the events as soon as they get out of the render-tree.
 
 This is the official documentation of the library.
