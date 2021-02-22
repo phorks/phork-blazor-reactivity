@@ -1,8 +1,10 @@
 # Phork.Blazor.Reactivity in Action
 
-In this document we will use examples to demonstrate how using `INotifyPropertyChanged`, `INotifyCollectionChanged` combined with the power _Phork.Blazor.Reactivity_ can reduce the amount of boilerplate code that we have to write in order to bring reactivity to our components.
+In this document we will use examples to demonstrate how using `INotifyPropertyChanged`, `INotifyCollectionChanged` combined with the power _Phork.Blazor.Reactivity_ can reduce the amount of boilerplate code we have to write in order to bring reactivity to our components.
 
-Let's assume that we have the following models:
+You can check out a live demo of the examples described in this document [here](https://phorks.github.io/phork-blazor/reactivity-demo/reactivity-in-action).
+
+Let's assume we have the following models:
 
 ```csharp
 class Person
@@ -24,13 +26,13 @@ class PersonSkill
 }
 ```
 
-We want to create a business card generator component that accepts a `Person` parameter. It has two responsibilities, it should let the user edit the person information and it should generate the business card as the user edits the information. Fortunately for us, we already have a fancy PersonEditor component that accepts a Person parameter and does the job of letting the user edit the information. So we only have to focus on the business card generation.
+We want to create a business card generator component that accepts a `Person` parameter. It has two responsibilities, it should let the user edit the person information and it should generate the business card as the user edits the information. Fortunately for us, we already have a fancy `PersonEditor` component that accepts a Person parameter and does the job of letting the user edit the information. So we only have to focus on the business card generation.
 
 You can check out a sample implementation of our fancy person editor component [here](../../samples/ReactivityDemo/Components/PersonEditor.razor). Here is how our fancy person editor component looks:
 
 ![fancy-person-editor](./assets/fancy-person-editor.jpg)
 
-It simply lets the user change the name, add new skills, and has a checkbox for each added skill to enable or disable it. Our generated business card should show the name at the first line and show all the __enabled__ skills at the second line. For instance for the information present at the picture above, the business card should look like this:
+It simply lets the user change the name, add new skills, and has a checkbox for each added skill to enable or disable it. Our generated business card should show the name at the first line and show all the __enabled__ skills at the second line. For instance for the information present in the above picture, the business card should look like this:
 
 ![generated-business-card](./assets/generated-business-card.jpg)
 

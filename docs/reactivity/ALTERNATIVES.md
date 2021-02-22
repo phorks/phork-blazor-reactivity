@@ -90,7 +90,7 @@ Dog Name: @Observed(() => Person.Dog.Name)
 <ChildComponent Person="Person" />
 ```
 
-## MvvmBlazor
+## MvvmBlazor (v1.1.7)
 
 You can't implement `INotifyPropertyChanged` directly in your models and use them in _MvvmBlazor_. In order for our models to be used with _MvvmBlazor_, we should make them inherit from `MvvmBlazor.ViewModel.ViewModelBase` (which implements `INotifyPropertyChanged`). This is not desirable as it makes our models dependent on `MvvmBlazor`. However, _MvvmBlazor_ is supposed to be used in _presentation layer_, using this in our _data layer_ makes it platform-dependent!
 
@@ -116,6 +116,8 @@ Dog Name: @Bind(Person.Dog, x => x.Name)
 ```
 
 ## ChildComponent Operation Results
+
+You can use the demo application to see the results: [Phork.Blazor.Reactivity](https://phorks.github.io/phork-blazor/reactivity-demo/comparison/phork-blazor-reactivity), [MvvmBlazor](https://phorks.github.io/phork-blazor/reactivity-demo/comparison/mvvmblazor).
 
 The table below compares the reaction of `ParentComponent` in _Phork.Blazor.Reactivity_ and _MvvmBlazor_ to the operations performed by `ChildComponent`:
 

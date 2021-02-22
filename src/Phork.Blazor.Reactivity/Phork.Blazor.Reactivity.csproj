@@ -6,8 +6,8 @@
     <Authors>Phorks</Authors>
     <PackageIcon>phorksc-128x128.png</PackageIcon>
     <RepositoryUrl>https://github.com/phorks/phork-blazor</RepositoryUrl>
-    <PackageTags>dotnet;dotnetcore;blazor;intoifypropertychanged;inotifycollectionchanged;reactivity</PackageTags>
-    <Description>Use INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically manage the state of your Blazor components.</Description>
+    <PackageTags>dotnet;dotnetcore;blazor;inotifypropertychanged;inotifycollectionchanged;reactivity</PackageTags>
+    <Description>Blazor state management library that helps you use INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically manage the state of your components.</Description>
     <Copyright>Copyright © 2021 Phorks</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
