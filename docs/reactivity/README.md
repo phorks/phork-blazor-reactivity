@@ -4,7 +4,7 @@ _Phork.Blazor.Reactivity_ is a Blazor state management library. It helps you tak
 
 By using this library:
 
-* You can use reactive one-way and two-way (using `@bind` directive) bindings that can make the component re-render if any `INotifyPropertyChanged` instance in the binding path raises `PropertyChanged` event.
+* You can use reactive one-way and two-way (in combination with `@bind` directive) bindings that can make the component re-render if any `INotifyPropertyChanged` instance in the binding path raises `PropertyChanged` event.
 * You can use nested properties as the binding path.
 * If the binding source in a one-way binding implements `INotifyCollectionChanged`, its `CollectionChanged` event will make the component re-render.
 * You can use optional converters with bindings if the binding source and target have different types and/or additional logic is required in your binding.
@@ -12,7 +12,7 @@ By using this library:
 
 This is the official documentation of the library.
 
-If you want to see the motivation behind the concepts of this library the following document can help you:
+If you prefer learning with examples and want to see the motivation behind the concepts of this library the following document can help you:
 
 * [Phork.Blazor.Reactivity in Action](./REACTIVITY-IN-ACTION.md)
 
@@ -205,7 +205,7 @@ Up to this point you know how using _observed values_ can help you make your com
 2. If you use _observed values_ with `@bind` syntax like this:
 
     ```html
-    <ChildComponent @bind-Name="@(Observed(() => Name))">
+    <ChildComponent @bind-Name="Observed(() => Name)">
     ```
 
     The razor code generator will try to add `__value => Observed(() => Name) = __value` lambda as a handler to `NameChanged` event callback of the child component. Which will cause a `Compiler Error CS0131` since the left-hand side of the assignment (`Observed(() => Name)`) is not assignable!
@@ -231,7 +231,7 @@ Each _observed binding_ is either one-way or two-way. The difference is only app
 Let's assume that we create a binding like this:
 
 ```html
-<ChildComponent @bind-SomeParameter="@Binding(() => Path.To.Property, ...).Value">
+<ChildComponent @bind-SomeParameter="Binding(() => Path.To.Property, ...).Value">
 ```
 
 Now, when `ChildComponent` raises `SomeParameterChanged` event, if the binding is two-way the new value will be set to `Path.To.Property`. But if the binding is one-way, the new value will be ignored. Obviously if you create a two-way binding and `Path.To.Property` is not settable -for example it represents a property without a setter or a `readonly` field- you will receive an `InvalidOperationException`. In the following sections you will see how you can make your bindings one-way or two-way.
@@ -255,7 +255,7 @@ Example:
 ```html
 @inherits ReactiveComponentBase
 ...
-<ChildComponent SomeStringParameter="@(Binding(() => Path.To.String.Property).Value)">
+<ChildComponent SomeStringParameter="Binding(() => Path.To.String.Property).Value">
 ```
 
 > **Note**: Once again note that we used `Binding(...).Value` as the value of the parameter not `Binding(...)`.
@@ -282,7 +282,7 @@ Example:
 ```html
 @inherits ReactiveComponentBase
 ...
-<ChildComponent SomeIntParameter="@(Binding(() => Path.To.String.Property, ConverterMethod).Value)">
+<ChildComponent SomeIntParameter="Binding(() => Path.To.String.Property, ConverterMethod).Value">
 
 @code {
     int ConverterMethod(string value)
@@ -292,7 +292,7 @@ Example:
 }
 ```
 
-There is another overload that can create a two-way binding that requires an additional converter delegate to be used to convert the values provided by `ParameterChanged` event to a value that can be assigned to the property represented by the _value accessor_:
+There is another overload that can create a two-way binding that requires an additional converter delegate to be used to convert the values provided by `{Parameter}Changed` event to a value that can be assigned to the property represented by the _value accessor_:
 
 ```csharp
 IObservedBinding<TTarget> Binding<TSource, TTarget>(
@@ -301,14 +301,14 @@ IObservedBinding<TTarget> Binding<TSource, TTarget>(
     Func<TTarget, TSource> reverseConverter)
 ```
 
-If you don't use the binding created by this overload as the value of a `@bind` directive, the binding will act exactly as if it was created by the previous overload (`reverseConverter` will be ignored).
+If you don't use the binding created by this overload as the value of a `@bind` directive, the binding will act exactly as if it was created by the previous overload (i.e. `reverseConverter` will be ignored).
 
 Example:
 
 ```html
 @inherits ReactiveComponentBase
 ...
-<ChildComponent @bind-SomeIntParameter="@(Binding(() => Path.To.String.Property, ConverterMethod, ReverseConverterMethod).Value)">
+<ChildComponent @bind-SomeIntParameter="Binding(() => Path.To.String.Property, ConverterMethod, ReverseConverterMethod).Value">
 
 @code {
     int ConverterMethod(string value)
@@ -325,4 +325,4 @@ Example:
 
 > :warning: **Warning:** As the converter parameters in both overloads has `Func` type, it may seem reasonable to use lambda expressions as their values, however, doing so will disable the `ReactivityManager`'s ability to cache bindings. Always write your conversion logic in instance methods and pass those instance methods as converter arguments.
 
-There is another overload to `Binding` method that accepts a `Phork.Data.IValueConverter<TSource, TTarget>` object as the converter. This interface has two methods `TTarget Convert(TSource value)` and `TSource ConvertBack(TTarget value)` that will be used to convert values. The behavior of the bindings created by this overload is the same as the bindings that two previous overloads create.
+There is another overload to `Binding` method that accepts a `Phork.Data.IValueConverter<TSource, TTarget>` object as the converter. This interface has two methods `TTarget Convert(TSource value)` and `TSource ConvertBack(TTarget value)` that will be used to convert values. The behavior of the bindings created by this overload is the same as the bindings that the two previous overloads create.
