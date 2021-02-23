@@ -12,6 +12,7 @@ namespace Phork.Blazor.Reactivity.Tests
         protected const string TEST_VALUE = "test";
         protected const string NEW_VALUE = "new";
         protected const string IRRELEVANT_VALUE = "irrelevant";
+        protected const string RELEVANT_VALUE = "relevant";
 
         private protected readonly Action stateHasChanged;
         private protected ReactivityEntry<string> entry;
@@ -43,6 +44,7 @@ namespace Phork.Blazor.Reactivity.Tests
             this.collectionEntry = new ReactivityEntry<ObservableCollection<string>>(
                 collectionAccessor,
                 this.stateHasChanged);
+            this.collectionEntry.Touch();
         }
 
         public void Dispose()
@@ -82,6 +84,8 @@ namespace Phork.Blazor.Reactivity.Tests
 
             this.entry.TryCleanUp();
 
+            this.entry.Touch();
+
             var newValue = this.entry.GetValue();
 
             Assert.Same(newValue, value);
@@ -105,6 +109,8 @@ namespace Phork.Blazor.Reactivity.Tests
             //  therefore it should be cleaned up
             this.entry.TryCleanUp();
 
+            this.entry.Touch();
+
             var newValue = this.entry.GetValue();
 
             Assert.NotSame(newValue, value);
@@ -115,19 +121,21 @@ namespace Phork.Blazor.Reactivity.Tests
         {
             var value = this.entry.GetValue();
 
-            this.entry.TryCleanUp();
-
-            // The second render has started
-
             var oldBindable = this.bindable;
 
             this.bindable = new FirstBindable()
             {
                 Second = new SecondBindable()
                 {
-                    Value = TEST_VALUE
+                    Value = NEW_VALUE
                 }
             };
+
+            this.entry.TryCleanUp();
+
+            this.entry.Touch();
+
+            // The second render has started
 
             var newValue = this.entry.GetValue();
 
@@ -137,7 +145,7 @@ namespace Phork.Blazor.Reactivity.Tests
 
             Assert.False(this.isStateHasChangedCalled);
 
-            this.bindable.Second.Value = NEW_VALUE;
+            this.bindable.Second.Value = RELEVANT_VALUE;
 
             Assert.True(this.isStateHasChangedCalled);
 
@@ -162,6 +170,8 @@ namespace Phork.Blazor.Reactivity.Tests
             _ = value.Value;
 
             this.collectionEntry.TryCleanUp();
+
+            this.collectionEntry.Touch();
 
             // The second render has started
 
@@ -353,6 +363,8 @@ namespace Phork.Blazor.Reactivity.Tests
             this.entry.Touch();
 
             this.entry.TryCleanUp();
+
+            this.entry.Touch();
 
             var newBinding = this.entry.GetBinding(bindingDescriptor);
 
