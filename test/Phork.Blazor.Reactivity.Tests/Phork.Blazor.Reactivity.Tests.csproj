@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\lib\phork-common\src\Phork.Common\Phork.Common.csproj" />
     <ProjectReference Include="..\..\src\Phork.Blazor.Reactivity\Phork.Blazor.Reactivity.csproj" />
   </ItemGroup>
 

@@ -5,14 +5,14 @@ _Phork.Blazor.Reactivity_ is a Blazor state management library. It helps you tak
 By using this library:
 
 * You can use reactive one-way and two-way (in combination with `@bind` directive) bindings that can make the component re-render if any `INotifyPropertyChanged` instance in the binding path raises `PropertyChanged` event.
-* You can use nested properties as the binding path.
+* You can use nested properties in the binding path.
 * If the binding source in a one-way binding implements `INotifyCollectionChanged`, its `CollectionChanged` event will make the component re-render.
 * You can optionally use converters with bindings if the binding source and target have different types and/or additional logic is required in your binding.
 * You don't need to worry about memory leaks and unnecessary re-renders as the library will take care unsubscribing the events as soon as they get out of the render-tree.
 
 This is the official documentation of the library.
 
-If you prefer to learn with examples and want to see the motivation behind the concepts of this library the following document can help you:
+If you prefer to learn with examples and want to see the motivation behind the concepts of this library, the following document can help you:
 
 * [Phork.Blazor.Reactivity in Action](./REACTIVITY-IN-ACTION.md)
 
@@ -325,4 +325,4 @@ Example:
 
 > :warning: **Warning:** As the converter parameters in both overloads has `Func` type, it may seem reasonable to use lambda expressions as their values, however, doing so will disable the `ReactivityManager`'s ability to cache bindings. Always write your conversion logic in instance methods and pass those instance methods as converter arguments.
 
-There is another overload to `Binding` method that accepts a `Phork.Data.IValueConverter<TSource, TTarget>` object as the converter. This interface has two methods `TTarget Convert(TSource value)` and `TSource ConvertBack(TTarget value)` that will be used to convert values. The behavior of the bindings created by this overload is the same as the bindings that the two previous overloads create.
+There is another overload of `Binding` method that accepts a `Phork.Data.IValueConverter<TSource, TTarget>` object as the converter. This interface has two methods `TTarget Convert(TSource value)` and `TSource ConvertBack(TTarget value)` that will be used to convert values. The behavior of the bindings created by this overload is the same as the bindings that the two previous overloads create.

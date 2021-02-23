@@ -4,7 +4,7 @@ Before deciding to write _Phork.Blazor.Reactivity_ I did some searching to find 
 
 The first one was [ReactiveUI.Blazor](https://github.com/reactiveui/ReactiveUI/tree/main/src/ReactiveUI.Blazor). The great _ReactiveUI_'s approach to add reactivity to Blazor is far from what I expected it to be. The fact that you can't make your component observe variables in the markup of your component is a dealbreaker. You have to replicate your markup logic once again in a handler to `ReactiveComponentBase<AppViewModel>.WhenActivated` to tell the library which variables it needs to watch in each render cycle. This was more than enough to make me ignore the library.
 
-The second one was [MvvmBlazor](https://github.com/klemmchr/MvvmBlazor), its approach is what I had in my mind but after some testing I realized that it can't satisfy my expectations. In this document I will compare _Phork.Blazor.Reactivity_ to _MvvmBlazor_.
+The second one was [MvvmBlazor](https://github.com/klemmchr/MvvmBlazor). It is a great library that helps you achieve MVVM in you Blazor applications. In addition, it comes with some functionalities that help you make your components reactive by taking advantage of `INotifyPropertyChanged` and `INotifyCollectionChanged`. The way it lets you do this is somehow similar to the approach I had in mind before writing `Phork.Blazor.Reactivity`. However, in terms of providing reactivity, this library falls short of my expectations. In this document we will see how `Phork.Blazor.Reactivity` compares to the reactivity solution offered by `MvvmBlazor`.
 
 For the sake of demonstration we will define an problem and try to use each library to tackle it.
 
@@ -90,7 +90,7 @@ Dog Name: @Observed(() => Person.Dog.Name)
 <ChildComponent Person="Person" />
 ```
 
-## MvvmBlazor (v1.1.7)
+## MvvmBlazor (v2.0.0)
 
 You can't implement `INotifyPropertyChanged` directly in your models and use them in _MvvmBlazor_. In order for our models to be used with _MvvmBlazor_, we should make them inherit from `MvvmBlazor.ViewModel.ViewModelBase` (which implements `INotifyPropertyChanged`). This is not desirable as it makes our models dependent on `MvvmBlazor`. However, _MvvmBlazor_ is supposed to be used in _presentation layer_, using this in our _data layer_ makes it platform-dependent!
 

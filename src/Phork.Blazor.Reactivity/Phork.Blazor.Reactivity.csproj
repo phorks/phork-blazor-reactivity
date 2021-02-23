@@ -10,6 +10,7 @@
     <Description>Blazor state management library that helps you use INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically manage the state of your components.</Description>
     <Copyright>Copyright © 2021 Phorks</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
