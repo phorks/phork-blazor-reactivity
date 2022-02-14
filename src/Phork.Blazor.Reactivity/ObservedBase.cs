@@ -1,49 +1,100 @@
-﻿using Phork.Blazor.Lifecycle;
+﻿using System;
 using System.Collections.Generic;
+using Phork.Blazor.Lifecycle;
 
-namespace Phork.Blazor
+namespace Phork.Blazor;
+
+internal abstract class ObservedBase<T> : RenderElement
 {
-    internal abstract class ObservedBase<T> : RenderElement
+    protected ReactivityEntry<T> Entry { get; }
+
+    private bool hasValue = false;
+
+    private T? cachedValue = default!;
+
+    protected T ValueInternal
     {
-        protected ReactivityEntry<T> Entry { get; }
-
-        private T _currentValue;
-        protected T CurrentValue
+        get
         {
-            get
-            {
-                this.UpdateValue();
-                return this._currentValue;
-            }
-            set
-            {
-                this.Entry.MemberAccessor.Value = value;
-            }
+            this.UpdateValue();
+            return this.cachedValue!;
+        }
+        set
+        {
+            this.EnsureNotDisposed();
+            this.Entry.MemberAccessor.Value = value;
+        }
+    }
+
+    public ObservedBase(ReactivityEntry<T> entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+
+        this.Entry = entry;
+    }
+
+    public void ClearValue()
+    {
+        this.EnsureNotDisposed();
+
+        if (!this.hasValue)
+        {
+            return;
         }
 
-        public ObservedBase(ReactivityEntry<T> entry)
-        {
-            Guard.ArgumentNotNull(entry, nameof(entry));
+        var oldValue = this.cachedValue;
 
-            this.Entry = entry;
+        this.cachedValue = default;
+        this.hasValue = false;
+
+        this.OnValueCleared(oldValue!);
+    }
+
+    protected void UpdateValue()
+    {
+        this.EnsureNotDisposed();
+
+        var newValue = this.Entry.MemberAccessor.Value;
+
+        if (this.hasValue && EqualityComparer<T>.Default.Equals(newValue, this.cachedValue))
+        {
+            return;
         }
 
-        protected void UpdateValue()
+        var shouldClearOldValue = this.hasValue;
+
+        this.hasValue = true;
+
+        var oldValue = this.cachedValue;
+
+        this.cachedValue = newValue;
+
+        if (shouldClearOldValue)
         {
-            var newValue = this.Entry.MemberAccessor.Value;
-
-            if (EqualityComparer<T>.Default.Equals(newValue, this._currentValue))
-            {
-                return;
-            }
-
-            var oldValue = this._currentValue;
-
-            this._currentValue = newValue;
-
-            this.OnValueChanged(oldValue, this._currentValue);
+            this.OnValueCleared(oldValue!);
         }
 
-        public abstract void OnValueChanged(T oldValue, T newValue);
+        this.OnValueUpdated(this.cachedValue);
+    }
+
+    protected virtual void OnValueCleared(T oldValue)
+    {
+    }
+
+    protected virtual void OnValueUpdated(T newValue)
+    {
+    }
+
+    public override void Dispose()
+    {
+        var cachedValue = this.cachedValue;
+        this.cachedValue = default!;
+
+        if (cachedValue is not null)
+        {
+            this.OnValueCleared(cachedValue);
+        }
+
+        base.Dispose();
     }
 }

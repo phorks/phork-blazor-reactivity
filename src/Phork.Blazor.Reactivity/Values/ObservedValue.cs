@@ -1,46 +1,88 @@
-﻿using Phork.Data;
-using System;
+﻿using System;
 using System.Collections.Specialized;
+using Phork.Data;
 
-namespace Phork.Blazor.Values
+namespace Phork.Blazor.Values;
+
+internal sealed class ObservedValue<T> : ObservedBase<T>,
+    IValueReader<T?>,
+    IDisposable
 {
-    internal sealed class ObservedValue<T> : ObservedBase<T>,
-        IValueReader<T>,
-        IDisposable
+    private bool observeCollectionRequested;
+
+    public T Value
     {
-        public T Value
-        {
-            get => this.CurrentValue;
-        }
+        get => this.ValueInternal;
+    }
 
-        public ObservedValue(ReactivityEntry<T> entry) : base(entry)
-        {
-        }
+    private bool _observesCollectionChanges;
 
-        public override void OnValueChanged(T oldValue, T newValue)
+    public bool ObservesCollectionChanges
+    {
+        get => this._observesCollectionChanges;
+        set
         {
-            if (oldValue is INotifyCollectionChanged oldCollection)
+            if (this._observesCollectionChanges == value)
             {
-                oldCollection.CollectionChanged -= this.Value_CollectionChanged;
+                return;
             }
 
-            if (newValue is INotifyCollectionChanged newCollection)
+            this._observesCollectionChanges = value;
+
+            if (this.Value is INotifyCollectionChanged collection)
             {
-                newCollection.CollectionChanged += this.Value_CollectionChanged;
+                if (value)
+                {
+                    collection.CollectionChanged += this.Value_CollectionChanged;
+                }
+                else
+                {
+                    collection.CollectionChanged -= this.Value_CollectionChanged;
+                }
             }
         }
+    }
 
-        private void Value_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    public ObservedValue(ReactivityEntry<T> entry) : base(entry)
+    {
+    }
+
+    public void RequestCollectionObserving()
+    {
+        this.observeCollectionRequested = true;
+    }
+
+    protected override void OnValueCleared(T oldValue)
+    {
+        if (this.ObservesCollectionChanges && oldValue is INotifyCollectionChanged collection)
         {
-            this.Entry.StateHasChanged();
+            collection.CollectionChanged -= this.Value_CollectionChanged;
         }
 
-        public void Dispose()
+        base.OnValueCleared(oldValue);
+    }
+
+    protected override void OnValueUpdated(T newValue)
+    {
+        base.OnValueUpdated(newValue);
+
+        if (newValue is INotifyCollectionChanged newCollection)
         {
-            if (this.CurrentValue is INotifyCollectionChanged collection)
-            {
-                collection.CollectionChanged -= this.Value_CollectionChanged;
-            }
+            newCollection.CollectionChanged += this.Value_CollectionChanged;
         }
+    }
+
+    protected override void OnRendered()
+    {
+        base.OnRendered();
+
+        this.ObservesCollectionChanges = this.observeCollectionRequested;
+
+        this.observeCollectionRequested = false;
+    }
+
+    private void Value_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        this.Entry.StateHasChanged();
     }
 }

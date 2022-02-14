@@ -1,8 +1,19 @@
-﻿namespace Phork.Blazor
+﻿using Microsoft.AspNetCore.Components;
+
+namespace Phork.Blazor;
+
+/// <summary>
+/// Represents a reactive UI component.
+/// </summary>
+public interface IReactiveComponent : IComponent
 {
-    public interface IReactiveComponent
-    {
-        void ConfigureBindings();
-        void StateHasChanged();
-    }
+    /// <summary>
+    /// Configures bindings in each render cycle.
+    /// </summary>
+    void ConfigureBindings();
+
+    /// <summary>
+    /// Notifies the component that its state has changed.
+    /// </summary>
+    void StateHasChanged();
 }

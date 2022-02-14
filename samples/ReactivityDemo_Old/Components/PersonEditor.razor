@@ -1,0 +1,39 @@
+﻿@using ReactivityDemo.Models.InAction
+
+<div class="card mb-5 mt-2" style="padding:5px">
+    <h5 class="card-title text-secondary">Person Editor Component</h5>
+    <div class="card-text">
+        <label>Name <input class="form-control" type="text" @bind="Person.Name" @bind:event="oninput" /></label>
+        <br />
+        <label>Skills </label>
+        <ul class="list-group">
+            @foreach (var skill in Person.Skills)
+            {
+                <li class="list-group-item">
+                    <input type="checkbox" @bind="skill.IsEnabled" /> @(skill.Title)
+                </li>
+            }
+            <li class="list-group-item" style="padding: 0">
+                <div class="input-group">
+                    <input class="form-control" type="text" placeholder="New Skill..." @bind="newSkillTitle" style="border: none" />
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" id="basic-addon2" style="border-top-right-radius: 0" @onclick="AddButton_Clicked">Add</button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Person Person { get; set; }
+
+    private string newSkillTitle = "";
+
+    private void AddButton_Clicked()
+    {
+        var title = string.IsNullOrEmpty(this.newSkillTitle) ? "(untitled)" : this.newSkillTitle;
+        this.Person.Skills.Add(new PersonSkill(title));
+        this.newSkillTitle = "";
+    }
+}

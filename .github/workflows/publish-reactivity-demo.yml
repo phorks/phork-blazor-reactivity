@@ -14,9 +14,9 @@ jobs:
         submodules: 'recursive'
     
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v1.7.2
+      uses: actions/setup-dotnet@v1.9.0
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
         
     - name: Publish the Blazor Project
       run : dotnet publish ./samples/ReactivityDemo/ReactivityDemo.csproj -c Release -o release/reactivity-demo --nologo

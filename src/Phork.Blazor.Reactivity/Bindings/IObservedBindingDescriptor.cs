@@ -1,15 +1,14 @@
 ﻿using Phork.Data;
 
-namespace Phork.Blazor.Bindings
-{
-    public interface IObservedBindingDescriptor
-    {
-        ObservedBindingMode Mode { get; }
-    }
+namespace Phork.Blazor.Bindings;
 
-    public interface IObservedBindingDescriptor<TSource, TTarget> :
-        IObservedBindingDescriptor
-    {
-        IValueConverter<TSource, TTarget> Converter { get; }
-    }
+internal interface IObservedBindingDescriptor
+{
+    ObservedBindingMode Mode { get; }
+}
+
+internal interface IObservedBindingDescriptor<TSource, TTarget> :
+    IObservedBindingDescriptor
+{
+    IValueConverter<TSource, TTarget> Converter { get; }
 }

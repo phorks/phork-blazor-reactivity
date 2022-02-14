@@ -1,0 +1,12 @@
+﻿@page "/observed-bindings"
+@using ReactivityDemo.Models.InAction
+
+
+<h3>Observed Bindings</h3>
+
+<PersonNameEditor Person="person" />
+<PersonNameEditor Person="person" />
+
+@code {
+    private Person person = new Person();
+}

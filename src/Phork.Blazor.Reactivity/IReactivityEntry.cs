@@ -1,8 +1,7 @@
 ﻿using Phork.Blazor.Lifecycle;
 
-namespace Phork.Blazor
+namespace Phork.Blazor;
+
+internal interface IReactivityEntry : IRenderElement
 {
-    internal interface IReactivityEntry : IRenderElement
-    {
-    }
 }

@@ -1,0 +1,28 @@
+﻿@namespace ReactivityDemo.Components.Comparison.PhorkDemo
+@inherits ReactiveComponentBase
+
+<h3>ParentComponent</h3>
+
+<div class="container" style="margin: 0px;">
+    <div class="row">
+        <div class="col-auto mr-5">
+            Name: @Observed(() => Person.Name)
+            <br />
+            Dog Name: @Observed(() => Person.Dog.Name)
+
+            <ul>
+                @foreach (var skill in ObservedCollection(() => Person.Skills))
+                {
+                    <li @key="skill">Title: @Observed(() => skill.Title)</li>
+                }
+            </ul>
+
+            <ChildComponent Person="Person" />
+        </div>
+        <div class="col-auto ml-5">
+            <pre class="text-info">
+                @log
+        </pre>
+        </div>
+    </div>
+</div>

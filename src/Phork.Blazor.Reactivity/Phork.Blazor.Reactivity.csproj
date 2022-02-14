@@ -1,24 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
     <RootNamespace>Phork.Blazor</RootNamespace>
     <Authors>Phorks</Authors>
     <PackageIcon>phorksc-128x128.png</PackageIcon>
     <RepositoryUrl>https://github.com/phorks/phork-blazor</RepositoryUrl>
     <PackageTags>dotnet;dotnetcore;blazor;inotifypropertychanged;inotifycollectionchanged;reactivity</PackageTags>
     <Description>Blazor state management library that helps you use INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically manage the state of your components.</Description>
-    <Copyright>Copyright © 2021 Phorks</Copyright>
+    <Copyright>Copyright © 2022 Phorks</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.0.2</Version>
+    <Version>1.0.9</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\phork-common\src\Phork.Common\Phork.Common.csproj" />
+    <ProjectReference Include="..\..\lib\phork-common\src\Phork.Common\Phork.Common.csproj">
+      <ExcludeAssets>compile</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

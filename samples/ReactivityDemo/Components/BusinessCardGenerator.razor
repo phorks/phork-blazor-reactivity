@@ -1,7 +1,7 @@
 ﻿@inherits ReactiveComponentBase
 @using ReactivityDemo.Models.InAction
 
-<h3>Business Card Generator</h3>
+<h3>BusinessCardGenerator</h3>
 
 <PersonEditor Person="Person" />
 
@@ -10,7 +10,7 @@
     <div class="card-text">
         @Observed(() => Person.Name) <br />
         Skills:
-        @foreach (var skill in Observed(() => Person.Skills))
+        @foreach (var skill in ObservedCollection(() => Person.Skills))
         {
             if (Observed(() => skill.IsEnabled))
             {

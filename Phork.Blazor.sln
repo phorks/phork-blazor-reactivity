@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5C13D6D9-E408-40BF-8B0C-B58AD40DD1DD}"
 EndProject
@@ -21,7 +21,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Phork.Blazor.Reactivity.Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E350F374-D3B0-4830-AD45-995FA9B9E144}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactivityDemo", "samples\ReactivityDemo\ReactivityDemo.csproj", "{AE94700C-E788-4030-A823-77A3CB86D6D9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F5E72865-41C1-4A18-9C66-B856C3856021}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactivityDemo_Old", "samples\ReactivityDemo_Old\ReactivityDemo_Old.csproj", "{535E2CE0-FE3A-4075-AF00-3989B9A51BD1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactivityDemo", "samples\ReactivityDemo\ReactivityDemo.csproj", "{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +48,14 @@ Global
 		{5B95C899-FA3E-416D-8EB7-9FC1EC974B51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B95C899-FA3E-416D-8EB7-9FC1EC974B51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B95C899-FA3E-416D-8EB7-9FC1EC974B51}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AE94700C-E788-4030-A823-77A3CB86D6D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE94700C-E788-4030-A823-77A3CB86D6D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AE94700C-E788-4030-A823-77A3CB86D6D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AE94700C-E788-4030-A823-77A3CB86D6D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{535E2CE0-FE3A-4075-AF00-3989B9A51BD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{535E2CE0-FE3A-4075-AF00-3989B9A51BD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{535E2CE0-FE3A-4075-AF00-3989B9A51BD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{535E2CE0-FE3A-4075-AF00-3989B9A51BD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,7 +66,8 @@ Global
 		{3D35AC24-507D-4BB7-A4BF-64F078C03FC6} = {5C13D6D9-E408-40BF-8B0C-B58AD40DD1DD}
 		{5B95C899-FA3E-416D-8EB7-9FC1EC974B51} = {8362155F-8A75-4A08-A3A8-2874134341A2}
 		{E350F374-D3B0-4830-AD45-995FA9B9E144} = {2C132113-CED6-410F-B175-3413065DB697}
-		{AE94700C-E788-4030-A823-77A3CB86D6D9} = {58A5D1B4-DF26-491E-B45D-784309229246}
+		{535E2CE0-FE3A-4075-AF00-3989B9A51BD1} = {58A5D1B4-DF26-491E-B45D-784309229246}
+		{8C1C8A0C-829D-4E35-88D9-799CE5EE3DE8} = {58A5D1B4-DF26-491E-B45D-784309229246}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3E1889D2-A50F-41F3-9C6C-F17F478B385F}

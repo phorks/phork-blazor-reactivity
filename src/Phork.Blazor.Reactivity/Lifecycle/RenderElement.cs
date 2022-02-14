@@ -1,49 +1,74 @@
 ﻿using System;
 
-namespace Phork.Blazor.Lifecycle
+namespace Phork.Blazor.Lifecycle;
+
+/// <summary>
+/// Internal implementation of <see cref="IRenderElement"/>.
+/// </summary>
+internal abstract class RenderElement : IRenderElement
 {
-    /// <summary>
-    /// Internal implementation of <see cref="IRenderElement"/>.
-    /// </summary>
-    internal class RenderElement : IRenderElement
+    private bool firstActivation = true;
+
+    /// <inheritdoc/>
+    public bool IsActive { get; private set; }
+
+    /// <inheritdoc/>
+    public bool IsDisposed { get; private set; }
+
+    /// <inheritdoc/>
+    public void Touch()
     {
-        private bool firstActivation = true;
+        this.EnsureNotDisposed();
 
-        private bool _isActive = false;
-        public bool IsActive => this._isActive;
-
-
-        public void Touch()
+        if (this.IsActive)
         {
-            if (this._isActive)
-            {
-                return;
-            }
-
-            this._isActive = true;
-            this.Activate(this.firstActivation);
-            this.firstActivation = false;
+            return;
         }
 
-        public virtual bool TryCleanUp()
-        {
-            if (this._isActive)
-            {
-                this._isActive = false;
-                return false;
-            }
+        this.IsActive = true;
+        this.OnActivated(this.firstActivation);
+        this.firstActivation = false;
+    }
 
-            (this as IDisposable)?.Dispose();
-            return true;
+    /// <inheritdoc/>
+    public virtual bool TryDispose()
+    {
+        if (this.IsActive)
+        {
+            this.IsActive = false;
+            this.OnRendered();
+            return false;
         }
 
-        /// <summary>
-        /// This method will be called when the element is accessed for the first time in each 
-        ///  render cycle, from the second render onwards.
-        /// </summary>
-        protected virtual void Activate(bool firstActivation)
-        {
-        }
+        this.Dispose();
+        return true;
+    }
 
+    public virtual void Dispose()
+    {
+        this.EnsureNotDisposed();
+        this.IsDisposed = true;
+    }
+
+    /// <summary>
+    /// Called when the element is accessed for the first time in each render cycle.
+    /// </summary>
+    protected virtual void OnActivated(bool firstActivation)
+    {
+    }
+
+    /// <summary>
+    /// Called after the end of each render cycle in which the element has been active.
+    /// </summary>
+    protected virtual void OnRendered()
+    {
+    }
+
+    protected void EnsureNotDisposed()
+    {
+        if (this.IsDisposed)
+        {
+            throw new ObjectDisposedException(nameof(RenderElement));
+        }
     }
 }

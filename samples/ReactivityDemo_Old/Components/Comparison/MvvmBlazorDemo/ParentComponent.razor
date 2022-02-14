@@ -1,0 +1,29 @@
+﻿@namespace ReactivityDemo.Components.Comparison.MvvmBlazorDemo
+@using MvvmBlazor.Components
+@inherits MvvmComponentBase
+
+<h3>ParentComponent</h3>
+<div class="container" style="margin: 0px;">
+    <div class="row">
+        <div class="col-auto mr-5">
+            Name: @Bind(Person, x => x.Name)
+            <br />
+            Dog Name: @Bind(Person.Dog, x => x.Name)
+
+            <ul>
+                @foreach (var skill in Bind(Person, x => x.Skills))
+                {
+                    <li @key="skill">Title: @Bind(skill, x => x.Title)</li>
+                }
+            </ul>
+
+            <ChildComponent Person="Person" />
+        </div>
+        <div class="col-auto ml-5">
+            <pre class="text-info">
+                @log
+        </pre>
+        </div>
+    </div>
+</div>
+

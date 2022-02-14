@@ -1,0 +1,12 @@
+﻿@page "/observed-bindings-with-converter"
+@using ReactivityDemo.Models.InAction
+
+
+<h3>Observed Bindings with Converter</h3>
+
+<PersonNameEditor Person="person" />
+<MakeAdmin Person="person" />
+
+@code {
+    private Person person = new Person();
+}

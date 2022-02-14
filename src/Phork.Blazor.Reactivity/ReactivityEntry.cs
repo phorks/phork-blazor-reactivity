@@ -1,147 +1,179 @@
-﻿using Phork.Blazor.Bindings;
+﻿using System;
+using System.Collections.Generic;
+using Phork.Blazor.Bindings;
 using Phork.Blazor.Lifecycle;
 using Phork.Blazor.Values;
 using Phork.Data;
-using System;
-using System.Collections.Generic;
+using Phork.Expressions;
 
-namespace Phork.Blazor
+namespace Phork.Blazor;
+
+internal sealed class ReactivityEntry<T> : RenderElement, IReactivityEntry
 {
-    internal sealed class ReactivityEntry<T> : RenderElement, IReactivityEntry, IDisposable
+    private readonly Dictionary<IObservedBindingDescriptor, IObservedBinding> bindings = new();
+
+    public Action StateHasChanged { get; }
+
+    private ObservedValue<T>? _observedValue;
+
+    public ObservedValue<T> ObservedValue
     {
-        private bool isDisposed;
-
-        public Action StateHasChanged { get; }
-
-        private ObservedValue<T> value;
-
-        private Dictionary<IObservedBindingDescriptor, IObservedBinding> bindings
-            = new Dictionary<IObservedBindingDescriptor, IObservedBinding>();
-
-        public MemberAccessor<T> MemberAccessor { get; }
-        public ObservedProperty<T> ObservedProperty { get; }
-
-
-        public ReactivityEntry(MemberAccessor<T> accessor, Action stateHasChanged)
-        {
-            Guard.ArgumentNotNull(accessor, nameof(accessor));
-            Guard.ArgumentNotNull(stateHasChanged, nameof(stateHasChanged));
-
-            this.MemberAccessor = accessor;
-            this.StateHasChanged = stateHasChanged;
-
-            if (accessor.Type != MemberAccessorType.Constant)
-            {
-                this.ObservedProperty = Data.ObservedProperty.Create(accessor, this.StateHasChanged);
-            }
-        }
-
-        public ObservedValue<T> GetValue()
+        get
         {
             this.EnsureNotDisposed();
 
-            if (this.value == null)
+            if (this._observedValue == null)
             {
-                this.value = new ObservedValue<T>(this);
+                this._observedValue = new ObservedValue<T>(this);
             }
 
-            this.value.Touch();
+            this._observedValue.Touch();
 
-            return this.value;
+            return this._observedValue;
         }
+    }
 
-        public IObservedBinding<TTarget> GetBinding<TTarget>(
-            IObservedBindingDescriptor<T, TTarget> bindingDescriptor)
+    public MemberAccessor<T> MemberAccessor { get; }
+    public ObservedProperty<T>? ObservedProperty { get; }
+
+    public bool IsPropertyAccessible
+        => this.ObservedProperty == null || this.ObservedProperty.IsAccessible;
+
+    public ReactivityEntry(MemberAccessor<T> accessor, Action stateHasChanged)
+    {
+        ArgumentNullException.ThrowIfNull(accessor);
+        ArgumentNullException.ThrowIfNull(stateHasChanged);
+
+        this.MemberAccessor = accessor;
+        this.StateHasChanged = stateHasChanged;
+
+        if (accessor.Type != MemberAccessorType.Constant)
         {
-            Guard.ArgumentNotNull(bindingDescriptor, nameof(bindingDescriptor));
-
-            this.EnsureNotDisposed();
-
-            IObservedBinding<TTarget> binding;
-
-            if (this.bindings.TryGetValue(bindingDescriptor, out var existingBinding))
-            {
-                binding = existingBinding as IObservedBinding<TTarget>;
-            }
-            else
-            {
-                binding = new ObservedBinding<T, TTarget>(this, bindingDescriptor);
-                this.bindings[bindingDescriptor] = binding;
-            }
-
-            binding.Touch();
-            return binding;
+            this.ObservedProperty = Data.ObservedProperty.Create(accessor, this.StateHasChanged);
         }
+    }
 
-        public override bool TryCleanUp()
+    //public T? GetObservedValue()
+    //{
+    //    var observedValue = this.ObservedValue;
+
+    //    T? value;
+    //    if (this.IsPropertyAccessible)
+    //    {
+    //        value = observedValue.Value;
+    //    }
+    //    else
+    //    {
+    //        observedValue.ClearValue();
+    //        value = default;
+    //    }
+
+    //    return value;
+    //}
+
+    //public T GetObservedValue(Func<T> fallbackValue)
+    //{
+    //    ArgumentNullException.ThrowIfNull(fallbackValue);
+
+    //    var observedValue = this.GetOrCreateObservedValue();
+
+    //    T value;
+    //    if (this.IsPropertyAccessible)
+    //    {
+    //        value = observedValue.Value;
+    //    }
+    //    else
+    //    {
+    //        observedValue.ClearValue();
+    //        value = fallbackValue();
+    //    }
+
+    //    return value;
+    //}
+
+    public IObservedBinding<TTarget> GetBinding<TTarget>(
+        IObservedBindingDescriptor<T, TTarget> bindingDescriptor)
+    {
+        ArgumentNullException.ThrowIfNull(bindingDescriptor);
+
+        this.EnsureNotDisposed();
+
+        IObservedBinding<TTarget> binding;
+
+        if (this.bindings.TryGetValue(bindingDescriptor, out var existingBinding))
         {
-            if (base.TryCleanUp())
+            if (existingBinding is not IObservedBinding<TTarget> existingTypedBinding)
             {
-                return true;
+                throw new InvalidOperationException("Unable to get binding. An existing binding conforming to the given descriptor has unmatching target type.");
             }
 
-            if (this.value?.TryCleanUp() == true)
-            {
-                this.value = null;
-            }
-
-            var inactiveBindings = new List<IObservedBindingDescriptor>();
-            foreach (var binding in this.bindings)
-            {
-                if (binding.Value.TryCleanUp())
-                {
-                    inactiveBindings.Add(binding.Key);
-                }
-            }
-
-            foreach (var key in inactiveBindings)
-            {
-                this.bindings.Remove(key);
-            }
-
-            return false;
+            binding = existingTypedBinding;
         }
-
-        protected override void Activate(bool firstActivation)
+        else
         {
-            base.Activate(firstActivation);
-
-            if (!firstActivation)
-            {
-                this.ObservedProperty?.TryRefreshSubscriptions();
-            }
+            binding = new ObservedBinding<T, TTarget>(this, bindingDescriptor);
+            this.bindings[bindingDescriptor] = binding;
         }
 
-        private void EnsureNotDisposed()
+        binding.Touch();
+        return binding;
+    }
+
+    /// <inheritdoc/>
+    public override bool TryDispose()
+    {
+        if (base.TryDispose())
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(typeof(ReactivityEntry<T>).Name);
-            }
+            // The entry is already disposed of by the base class. No need to take any action.
+            return true;
         }
 
-        public void Dispose()
+        if (this._observedValue?.TryDispose() == true)
         {
-            if (this.isDisposed)
-            {
-                return;
-            }
-
-            this.isDisposed = true;
-
-            this.ObservedProperty?.Dispose();
-
-            this.value?.Dispose();
-            this.value = null;
-
-            foreach (var binding in this.bindings.Values)
-            {
-                (binding as IDisposable)?.Dispose();
-            }
-
-            this.bindings.Clear();
-
-            this.isDisposed = true;
+            this._observedValue = null;
         }
+
+        var inactiveBindings = new List<IObservedBindingDescriptor>();
+        foreach (var binding in this.bindings)
+        {
+            if (binding.Value.TryDispose())
+            {
+                inactiveBindings.Add(binding.Key);
+            }
+        }
+
+        foreach (var key in inactiveBindings)
+        {
+            this.bindings.Remove(key);
+        }
+
+        return false;
+    }
+
+    protected override void OnActivated(bool firstActivation)
+    {
+        base.OnActivated(firstActivation);
+
+        if (!firstActivation)
+        {
+            this.ObservedProperty?.TryRefreshSubscriptions();
+        }
+    }
+
+    public override void Dispose()
+    {
+        this.ObservedProperty?.Dispose();
+
+        this._observedValue?.Dispose();
+        this._observedValue = null;
+
+        foreach (var binding in this.bindings.Values)
+        {
+            binding.Dispose();
+        }
+
+        this.bindings.Clear();
+
+        base.Dispose();
     }
 }

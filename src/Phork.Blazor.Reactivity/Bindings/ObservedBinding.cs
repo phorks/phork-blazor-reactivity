@@ -1,70 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
+using Phork.Data;
 
-namespace Phork.Blazor.Bindings
+namespace Phork.Blazor.Bindings;
+
+internal sealed class ObservedBinding<TSource, TTarget> : ObservedBase<TSource>,
+    IObservedBinding<TTarget>,
+    IValueReader<TTarget>,
+    IValueWriter<TTarget>
 {
-    internal sealed class ObservedBinding<TSource, TTarget> : ObservedBase<TSource>,
-        IObservedBinding<TTarget>,
-        IObservedBinding
+    private TTarget _value = default!;
+
+    /// <inheritdoc/>
+    public TTarget Value
     {
-        private TTarget _value;
-        public TTarget Value
+        get
         {
-            get
-            {
-                this.UpdateValue();
-                return this._value;
-            }
-            set
-            {
-                if (this.Descriptor.Mode != ObservedBindingMode.TwoWay)
-                {
-                    return;
-                }
-
-                if (EqualityComparer<TTarget>.Default.Equals(value, this._value))
-                {
-                    return;
-                }
-
-                this._value = value;
-
-                var convertedValue = this.Descriptor.Converter.ConvertBack(value);
-
-                if (EqualityComparer<TSource>.Default.Equals(convertedValue, this.CurrentValue))
-                {
-                    return;
-                }
-
-                this.CurrentValue = convertedValue;
-            }
+            this.EnsureNotDisposed();
+            this.UpdateValue();
+            return this._value;
         }
-
-        public IObservedBindingDescriptor<TSource, TTarget> Descriptor { get; }
-        IObservedBindingDescriptor IObservedBinding.Descriptor => this.Descriptor;
-
-
-        public ObservedBinding(
-            ReactivityEntry<TSource> entry,
-            IObservedBindingDescriptor<TSource, TTarget> bindingDescriptor)
-            : base(entry)
+        set
         {
-            Guard.ArgumentNotNull(bindingDescriptor, nameof(bindingDescriptor));
-
-            if (bindingDescriptor.Mode == ObservedBindingMode.TwoWay
-                && entry.MemberAccessor.IsReadOnly)
+            if (this.Descriptor.Mode != ObservedBindingMode.TwoWay)
             {
-                throw new InvalidOperationException($"Unable to create observed binding. A two-way binding cannot be created with a read-only source. Try using {nameof(ObservedBindingMode)}.{nameof(ObservedBindingMode.OneWay)} instead.");
+                throw new InvalidOperationException($"Unable to set the value of the binding. Only bindings in {ObservedBindingMode.TwoWay} binding mode support modifications to the binding value.");
             }
 
-            this.Descriptor = bindingDescriptor;
-        }
+            this.EnsureNotDisposed();
 
-        public override void OnValueChanged(TSource oldValue, TSource newValue)
+            if (EqualityComparer<TTarget>.Default.Equals(value, this._value))
+            {
+                return;
+            }
+
+            this._value = value;
+
+            TSource convertedValue = this.Descriptor.Converter.ConvertBack(value);
+
+            this.ValueInternal = convertedValue;
+        }
+    }
+
+    public IObservedBindingDescriptor<TSource, TTarget> Descriptor { get; }
+    IObservedBindingDescriptor IObservedBinding.Descriptor => this.Descriptor;
+
+    /// <inheritdoc/>
+    public ObservedBindingMode Mode => this.Descriptor.Mode;
+
+    public ObservedBinding(
+        ReactivityEntry<TSource> entry,
+        IObservedBindingDescriptor<TSource, TTarget> bindingDescriptor)
+        : base(entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(bindingDescriptor);
+
+        if (bindingDescriptor.Mode == ObservedBindingMode.TwoWay
+            && entry.MemberAccessor.IsReadOnly)
         {
-            var convertedValue = this.Descriptor.Converter.Convert(newValue);
-
-            this._value = convertedValue;
+            throw new InvalidOperationException($"Unable to create observed binding. A two-way binding cannot be created with a read-only source. Try using {nameof(ObservedBindingMode)}.{nameof(ObservedBindingMode.OneWay)} instead.");
         }
+
+        this.Descriptor = bindingDescriptor;
+    }
+
+    public override void Dispose()
+    {
+        this._value = default!;
+
+        base.Dispose();
+    }
+
+    protected override void OnValueUpdated(TSource newValue)
+    {
+        base.OnValueUpdated(newValue);
+
+        var convertedValue = this.Descriptor.Converter.Convert(newValue);
+
+        this._value = convertedValue;
     }
 }

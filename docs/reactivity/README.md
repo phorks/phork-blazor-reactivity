@@ -1,14 +1,14 @@
 # Phork.Blazor.Reactivity
 
-_Phork.Blazor.Reactivity_ is a Blazor state management library. It helps you take advantage of C#'s `INotifyPropertyChanged` and `INotifyCollectionChanged` interfaces to automatically manage the state of your components.
+_Phork.Blazor.Reactivity_ is a Blazor state management library. It helps take advantage of .NET's `INotifyPropertyChanged` and `INotifyCollectionChanged` interfaces to automatically manage the state of your components.
 
 By using this library:
 
 * You can use reactive one-way and two-way (in combination with `@bind` directive) bindings that can make the component re-render if any `INotifyPropertyChanged` instance in the binding path raises `PropertyChanged` event.
 * You can use nested properties in the binding path.
-* If the binding source in a one-way binding implements `INotifyCollectionChanged`, its `CollectionChanged` event will make the component re-render.
-* You can optionally use converters with bindings if the binding source and target have different types and/or additional logic is required in your binding.
-* You don't need to worry about memory leaks and unnecessary re-renders as the library will take care unsubscribing the events as soon as they get out of the render-tree.
+* You can additionally make your components react to `CollectionChanged` notifications of `INotifyCollectionChanged` interface.
+* You can optionally use converters with bindings if the binding source and target have different types and/or additional logic is required in your bindings.
+* You don't need to worry about memory leaks and unnecessary re-renders as the library will take care of unsubscribing the events as soon as they get out of the render-tree.
 
 This is the official documentation of the library.
 
@@ -46,119 +46,128 @@ namespace Phork.Blazor
 
 ### Make Your Component Reactive
 
-#### If the Component Is Derived Directly from `ComponentBase`
+In order to enable your components to take advantage of the library you should make them inherit from `ReactiveComponentBase`.
 
-If you are going to use reactivity in a component that directly inherits from `ComponentBase` you must make the component inherit from `ReactiveComponentBase`.
-
-In Razor, insert the following line at the start of you file:
+Insert the following line at the start of the Razor file of your component:
 
 ```csharp
 @inherits ReactiveComponentBase
 ```
 
-If your component does not have a .razor file, you can simply make your component class inherit from `ReactiveComponentBase` in C#:
+> **Note:** If your component does not have a Razor file, simply make it inherit from `Phork.Blazor.ReactiveComponentBase` instead of the default `ComponentBase`.
 
-```csharp
-public class YourComponent : Phork.Blazor.ReactiveComponentBase
-```
+[](ignored) <!-- To get rid of MD028/no-blanks-blockquote -->
 
-#### If the Component Has a Different Direct Base Type
+> **Note:** If your component has a direct base type other than the default `ComponentBase`, you can still take advantage of the library. All you need to do is to implement `IReactiveComponent` in your component. [This](.) document will guide you through the steps.
 
-If your component has a direct base type other than ComponentBase and you are not able to make the base type inherit from `ReactiveComponentBase` you can still use reactivity in your component by implementing `IReactiveComponent`.
+### Use reactivity
 
-Modify _YourComponent.razor.cs_ this way (if there is no cs file you can still add these functionalities in the Razor file):
+#### Observed Values
 
-```csharp
-public partial class YourComponent : NonReactiveComponentBase, IReactiveComponentBase, IDisposable
-{
-    protected ReactivityManager ReactivityManager { get; }
+When you intend to use a property of an object that implements `INotifyPropertyChanged` in your Razor file and at the same time make your component re-render when the property changes, you can use _observed values_.
 
-    public YourComponent()
-    {
-        this.reactivityManager = new ReactivityManager(this);
-        // your constructor code...
-    }
-
-    // your code...
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
-
-        // your OnAfterRender logic (if any)...
-
-        this.reactivityManager.CleanUp();
-    }
-
-    public virtual void Dispose()
-    {
-        this.reactivityManager.Dispose();
-
-        // your Dispose logic (if any)...
-    }
-
-    void IReactiveComponent.StateHasChanged()
-    {
-        this.InvokeAsync(this.StateHasChanged());
-    }
-
-    void IReactiveComponent.ConfigureBindings()
-    {
-    }
-}
-```
-
-This way you have to use `ReactivityManager.Observed(...)` and `ReactivityManager.Binding(...)` in your Razor file. If this annoys you, you can copy any of the public methods of `ReactivityManager` in your component class and direct the call with given arguments to the respective method in `ReactivityManager`.
-
-## Observed Values
-
-An _observed value_ can be created by calling `Observed<T>(Expression<Func<T>>)` method on a `ReactivityManager` or a component inheriting from `ReactiveComponentBase` -which directs the call to an internal `ReactivityManager`.
-
-`Observed<T>` method has only one parameter of type `Expression<Func<T>>`. This expression has to be a _value accessor_ as defined below.
-
-### Value Accessor
-
-A _value accessor_ of type `T` is essentially an `Expression<Func<T>>` conforming to some restrictions. `Expression<Func<T>>` type forces the expression to be a lambda expression returning `T`. However not all lambda expressions with the return type of `T` are valid _value accessors_. In order for a lambda expression to be a valid _value accessor_, the body of the lambda expression has to either be a constant expression (an expression like `() => item` where item is a variable) or a chain of object member access expressions. In other words only expressions like `variable` and `root.member1.member2.⋯.member{n}`
- are valid where in the second case `member1` is a member (property of field) of `root` and for each i > 1, `member{i}` is a member of `member{i-1}`. If the expression is not a valid _value accessor_, using it as a _value accessor_ argument throws an `ArgumentException`.
-
-### Returned Value of Observed Values
-
- When you use a `Observed` method to create an observed value with `() => Path.To.Property` _value accessor_, the returned value of the method will be the value of `Path.To.Property`.
-
-### Behavior of Observed Values
-
- When an _observed value_ is created with a `() => root.member1.member2.⋯.member{n}` _value accessor_, the `ReactivityManager` will scan the body of the lambda expression. If `root` implements `INotifyPropertyChanged`, its `PropertyChanged` event will be subscribed to. If the event gets raised and `e.PropertyName` equals `member1` the `ReactivityManager` will call its reactive component's `IReactiveComponent.StateHasChanged` method. For each i < n, the same thing will happen to `item{i}` in the body of the _value accessor_ except the condition that will trigger `IReactiveComponent.StateHasChanged` will be `e.PropertyName` being equal to `item{i+1}`. In addition, if the value returned by `root.member1.member2.⋯.member{n}` implements `INotifyCollectionChanged`, its `CollectionChanged` event will automatically be subscribed to, and the `ReactivityManager`'s reactive component will receive a `IReactiveComponent.StateHasChanged` call each time the event is raised.
-
- Since under the hood, the creation of _observed values_ requires dynamic compiling of lambda expressions, and doing so may turn expensive, `ReactivityManager` does a good job in caching created _observed values_ while getting rid of unnecessary ones as soon as possible to avoid redundant `StateHasChanged` calls and potential memory leaks. A reactive component calls `ReactivityManager`'s `CleanUp` method after each rendering and this helps `ReactivityManager` clean up the _observed values_ that were not used in that rendering cycle (e.g. an _observed value_ that is inside the body of an if statement that has a false condition based on the current state of the component will not make the component re-render when it gets changed because `ReactivityManager` will consider this _observed value_ inactive and will clean it up).
-
-### Use Cases
-
-Since the `Observed` method, when used with a `() => Path.To.Property` _value accessor_, returns the value of `Path.To.Property`, you can use `Observed(() => Path.To.Property)` anywhere inside your razor file that using `Path.To.Property` is valid. However, when you intend to set a child component's parameter -either using a `@bind` directive or directly- [_observed bindings_](#observed-bindings) are preferred over _observed values_.
-
-Example:
+Assuming `Person` is a parameter of the component and implements `INotifyPropertyChanged`, instead of doing:
 
 ```html
-@inherits ReactiveComponentBase
+Name: @Person.Name
+```
 
+You can do the following in a reactive component:
+
+```html
 Name: @Observed(() => Person.Name)
+```
 
-@if(ShouldShowItems(Observed(() => Person.AccountType)))
+This way not only the `Observed` method returns the value of `Person.Name` but also it subscribes to `PropertyChanged` event of `Person` and makes the component re-render (through calling `StateHasChanged`) whenever it receives a change notification regarding the `Name` property of the `Person` object. (By checking `e.PropertyName == "Name"` in its `PropertyChanged` handler).
+
+You can nest properties and let the _observed value_ observe the changes to any of the intermediate properties to make your component re-render:
+
+```html
+Dog Name: @Observed(() => Person.Dog.Name)
+```
+
+This way if the person changes its dog object or the name of its existing dog (assuming the dog class implements `INotifyPropertyChanged`) the component will re-render automatically.
+
+Since the `Observed` method returns the value of the expression, it can be mixed with your code seamlessly:
+
+```html
+Dog Age Estimate: @(DateTime.Now.Year - Observed(() => Person.Dog.Birthday).Year)
+
+-----
+
+@if (IsPalindrome(Observed(() => Person.Name)))
 {
-    foreach(var item in Observed(() => Person.Items))
+    <text>Congrats!</text>
+}
+
+-----
+
+@if (IsPalindrome(Observed(() => Person.Name)))
+{
+    var dog = Observed(() => Person.Dog);
+    if(IsPalindrome(Observed(() => dog.Name)))
     {
-        <div>@Observed(() => item.Name)</div>
+        <text>Nested Congrats!</text>
     }
 }
 
-@code {
-    Person person;
+----- Code -----
 
-    bool ShouldShowItems(PersonAccountType accountType)
+@code {
+    // Person parameter
+
+    private string IsPalindrome(string text)
     {
-        // your logic...
+        // using System.Linq
+        return text.ToLower().SequenceEqual(text.ToLower().Reverse());
     }
 }
 ```
+
+#### Observed Collections
+
+You can use _observed collections_ if you need your component to react to `CollectionChanged` events of values implementing `INotifyCollectionChanged`. _Observed collections_ **do** react to property changes that happen in the property path leading to the collection in the same way as _observed values_ do.
+
+```html
+@foreach(var skill in ObservedCollection(() => Person.Skills))
+{
+    <text>@Observed(skill.Name)</text>
+}
+```
+
+By doing so, the `ObservedCollection` method will return the value of `Person.Skills` and will re-render the component when `Skills` property of `Person` object gets changes. In addition, if the `Skills` collection implements `INotifyCollectionChanged`, each `CollectionChanged` event it fires will cause the component to re-render.
+
+#### Observed Bindings
+
+While _observed values_ are enough for one-way binding scenarios, they cannot be used with the `@bind` syntax of Blazor. You can use _observed bindings_ to create reactive two-way bindings:
+
+```html
+<input type="text" @bind="Binding(() => Person.Name).Value" />
+```
+
+Here, not only any external change (outside of the Blazor events) to `Person.Name` will make the component re-render to refresh the text-box, but also if the user changes the text inside the text-box, `Person.Name` will get changed accordingly.
+
+Since unlike _observed values_, _observed bindings_ **do not return the value of the expression directly**, they cannot be mixed with your logic as easily as _observed values_ could. Converters can be used if you want a conversion occur between the source and the target value:
+
+```html
+<input type="text" @bind="Binding(() => Person.Age, AddFive, SubtractFive).Value" @bind:event="oninput" />
+
+@code {
+    // Person parameter
+
+    private int AddFive(int number)
+    {
+        return number + 5;
+    }
+
+    private int SubtractFive(int number)
+    {
+        return number - 5;
+    }
+}
+```
+
+This way if the value of `Person.Age` (the source value) gets changed externally, the text-box will show the new value plus five (as instructed by the `AddFive` converter method) and if the user edits the number inside the text-box (the target value), `Person.Age` will become the value inside the text-box minus five (as instructed by the `SubtractFive` reverse-converter method).
 
 ### Usage in Code
 
