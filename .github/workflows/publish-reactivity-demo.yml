@@ -22,7 +22,7 @@ jobs:
       run : dotnet publish ./samples/ReactivityDemo/ReactivityDemo.csproj -c Release -o release/reactivity-demo --nologo
       
     - name: Replace the base address
-      run: sed -i 's/<base href="\/" \/>/<base href="\/phork-blazor\/reactivity-demo\/" \/>/g' release/reactivity-demo/wwwroot/index.html
+      run: sed -i 's/<base href="\/" \/>/<base href="\/phork-blazor-reactivity\/reactivity-demo\/" \/>/g' release/reactivity-demo/wwwroot/index.html
       
 #    - name: Add .nojekyll file
 #      run: touch release/reactivity-demo/wwwroot/.nojekyll
