@@ -5,7 +5,7 @@ This document demonstrates how Phork.Blazor.Reactivity is different from the alt
 There are also other documents that you may find useful:
 
 * [Getting Started](../README.md): Will guide you through the steps required to setup the library and make your components reactive.
-* [Phork.Blazor.Reactivity in Action](./docs/IN-ACTION.md): If you are new to these interfaces and/or you want to see the motivation behind the concepts of this library.
+* [Phork.Blazor.Reactivity in Action](./IN-ACTION.md): If you are new to these interfaces and/or you want to see the motivation behind the concepts of this library.
 
 Before deciding to write Phork.Blazor.Reactivity I did some searching to find libraries that can bring `INotifyPropertyChanged` and `INotifyCollectionChanged` support to Blazor. I managed to find two particular libraries.
 
