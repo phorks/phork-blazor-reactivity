@@ -1,122 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Phork.Blazor.Bindings;
-using Phork.Expressions;
+using Phork.Blazor.Expressions;
+using Phork.Blazor.Lifecycle;
+using Phork.Blazor.Services;
 
 namespace Phork.Blazor;
 
-public sealed class ReactivityManager : IDisposable
+internal sealed class ReactivityManager : IReactivityManager
 {
     private bool isDisposed = false;
 
-    private readonly Dictionary<MemberAccessor, IReactivityEntry> entries = new();
+    private IReactiveComponent? component;
 
-    private readonly IReactiveComponent component;
+    private readonly IPropertyObserver propertyObserver;
+    private readonly ICollectionObserver collectionObserver;
 
-    public ReactivityManager(IReactiveComponent component)
+    private readonly Dictionary<MemberAccessor, IMemberAccessorElement> memberAccessors = new();
+
+    public ReactivityManager(
+        IPropertyObserver propertyObserver,
+        ICollectionObserver collectionObserver)
+    {
+        ArgumentNullException.ThrowIfNull(propertyObserver);
+        ArgumentNullException.ThrowIfNull(collectionObserver);
+
+        this.propertyObserver = propertyObserver;
+        this.collectionObserver = collectionObserver;
+
+        propertyObserver.ObservedPropertyChanged += this.PropertyObserver_ObservedPropertyChanged;
+        collectionObserver.ObservedCollectionChanged += this.CollectionObserver_ObservedCollectionChanged;
+    }
+
+    /// <inheritdoc/>
+    public void Initialize(IReactiveComponent component)
     {
         ArgumentNullException.ThrowIfNull(component);
+
+        this.AssertNotDisposed();
+
+        if (this.component is not null)
+        {
+            throw new InvalidOperationException("Reactivity manager is already initialized.");
+        }
 
         this.component = component;
     }
 
-    /// <summary>
-    /// Notifies the manager that a render cycle has been finished. The manager will subsequently
-    /// get rid of inactive observed values and bindings.
-    /// </summary>
+    /// <inheritdoc/>
     public void OnAfterRender()
     {
-        this.EnsureNotDisposed();
+        this.AssertNotDisposed();
+        this.AssertInitialized();
 
         this.component.ConfigureBindings();
 
-        List<MemberAccessor> inactiveEntries = new List<MemberAccessor>();
-        foreach (var entry in this.entries)
-        {
-            if (entry.Value.TryDispose())
-            {
-                inactiveEntries.Add(entry.Key);
-            }
-        }
+        this.memberAccessors.NotifyCycleEndedAndRemoveDisposedElements();
 
-        foreach (var item in inactiveEntries)
-        {
-            this.entries.Remove(item);
-        }
+        this.propertyObserver.OnAfterRender();
+        this.collectionObserver.OnAfterRender();
     }
 
-    /// <summary>
-    /// Observes the changes to the value represented by the <paramref name="valueAccessor"/>
-    /// expression and returns its value.
-    /// </summary>
-    /// <typeparam name="T">Type of the value represented by <paramref name="valueAccessor"/>.</typeparam>
-    /// <param name="valueAccessor">An expression representing the value.</param>
-    /// <returns>The value represented by <paramref name="valueAccessor"/> expression.</returns>
+    /// <inheritdoc/>
     public T Observed<T>(Expression<Func<T>> valueAccessor)
     {
         ArgumentNullException.ThrowIfNull(valueAccessor);
-        return this.Observed(MemberAccessor.Create(valueAccessor), false);
+
+        var element = this.Observe(valueAccessor);
+
+        return element.Accessor.Value;
     }
 
-    /// <summary>
-    /// Observes the changes to the value and the collection represented by the <paramref
-    /// name="valueAccessor"/> expression and returns its value.
-    /// </summary>
-    /// <typeparam name="T">Type of the value represented by <paramref name="valueAccessor"/>.</typeparam>
-    /// <param name="valueAccessor">An expression representing the value.</param>
-    /// <returns>The value represented by <paramref name="valueAccessor"/> expression.</returns>
+    /// <inheritdoc/>
     public T ObservedCollection<T>(Expression<Func<T>> valueAccessor)
     {
         ArgumentNullException.ThrowIfNull(valueAccessor);
-        return this.Observed(MemberAccessor.Create(valueAccessor), true);
+
+        var value = this.Observed(valueAccessor);
+
+        if (value is INotifyCollectionChanged notifier)
+        {
+            this.collectionObserver.Observe(notifier);
+        }
+
+        return value;
     }
 
-    /// <summary>
-    /// Observes the changes to the value represented by the <paramref name="valueAccessor"/>
-    /// expression and returns an <see cref="IObservedBinding{T}"/> that getting or setting <see
-    /// cref="IObservedBinding{T}.Value"/> will respectively get or set the value represented by the
-    /// <paramref name="valueAccessor"/> expression.
-    /// </summary>
-    /// <typeparam name="T">Type of the value represented by <paramref name="valueAccessor"/>.</typeparam>
-    /// <param name="valueAccessor">An expression representing the value.</param>
-    /// <returns>An observed binding.</returns>
+    /// <inheritdoc/>
     public IObservedBinding<T> Binding<T>(Expression<Func<T>> valueAccessor)
     {
         ArgumentNullException.ThrowIfNull(valueAccessor);
 
-        var descriptor = ObservedBindingDescriptor.Create<T>(ObservedBindingMode.TwoWay);
+        var element = this.Observe(valueAccessor);
 
-        return this.GetBinding(valueAccessor, descriptor);
+        var binding = new DirectObservedBinding<T>(element.Accessor);
+
+        return binding;
     }
 
-    /// <summary>
-    /// Observes the changes to the value represented by the <paramref name="valueAccessor"/>
-    /// expression and returns an <see cref="IObservedBinding{T}"/> that getting its <see
-    /// cref="IObservedBinding{T}.Value"/> will return the value represented by the <paramref
-    /// name="valueAccessor"/> converted to <typeparamref name="TTarget"/> by <paramref
-    /// name="converter"/>, and setting it will use <paramref name="reverseConverter"/> to convert
-    /// the set value to <typeparamref name="TSource"/> and set it to the value represented by the
-    /// <paramref name="valueAccessor"/>.
-    /// </summary>
-    /// <typeparam name="TSource">Type of the source value.</typeparam>
-    /// <typeparam name="TTarget">Type of the target value after conversion.</typeparam>
-    /// <param name="valueAccessor">An expression representing the source value.</param>
-    /// <param name="converter">
-    /// A function to convert source values to target values.
-    /// <para>
-    /// Note: To improve the performance, avoid using lambda expressions as the converter, use
-    /// instance or static methods instead.
-    /// </para>
-    /// </param>
-    /// <param name="reverseConverter">
-    /// A function to convert target values to source values.
-    /// <para>
-    /// Note: To improve the performance, avoid using lambda expressions as the converter, use
-    /// instance or static methods instead.
-    /// </para>
-    /// </param>
-    /// <returns>An observed binding.</returns>
+    /// <inheritdoc/>
     public IObservedBinding<TTarget> Binding<TSource, TTarget>(
         Expression<Func<TSource>> valueAccessor,
         Func<TSource, TTarget> converter,
@@ -126,9 +111,11 @@ public sealed class ReactivityManager : IDisposable
         ArgumentNullException.ThrowIfNull(converter);
         ArgumentNullException.ThrowIfNull(reverseConverter);
 
-        var descriptor = ObservedBindingDescriptor.Create(converter, reverseConverter);
+        var element = this.Observe(valueAccessor);
 
-        return this.GetBinding(valueAccessor, descriptor);
+        var binding = new ConvertedObservedBinding<TSource, TTarget>(element.Accessor, converter, reverseConverter);
+
+        return binding;
     }
 
     public void Dispose()
@@ -138,72 +125,84 @@ public sealed class ReactivityManager : IDisposable
             return;
         }
 
-        this.isDisposed = true;
-
-        foreach (var entry in this.entries.Values)
+        foreach (var item in this.memberAccessors.Values)
         {
-            entry.Dispose();
+            item.Dispose();
         }
+
+        this.propertyObserver.Dispose();
+        this.collectionObserver.Dispose();
+
+        this.isDisposed = true;
     }
 
-    private ReactivityEntry<T> GetEntry<T>(MemberAccessor<T> valueAccessor)
+    private MemberAccessorElement<T> Observe<T>(Expression<Func<T>> valueAccessor, bool ensureAccessible = true)
     {
-        ReactivityEntry<T> entry;
+        this.AssertNotDisposed();
+        this.AssertInitialized();
 
-        if (this.entries.TryGetValue(valueAccessor, out var existing))
+        var accessor = MemberAccessor.Create(valueAccessor);
+
+        MemberAccessorElement<T> element;
+        if (this.memberAccessors.TryGetValue(accessor, out var existing))
         {
-            if (existing is not ReactivityEntry<T> typedExisting)
+            if (existing is not MemberAccessorElement<T> typedElement)
             {
-                throw new InvalidOperationException("Unable to get entry. There is already an existing entry for the given accessor but has unmatching type.");
+                throw new InvalidOperationException("A single accessor cannot be used with two different generic type parameters.");
             }
 
-            entry = typedExisting;
+            element = typedElement;
         }
         else
         {
-            entry = new ReactivityEntry<T>(valueAccessor, this.StateHasChanged);
-            this.entries[valueAccessor] = entry;
+            element = new MemberAccessorElement<T>(accessor, this.propertyObserver);
+            this.memberAccessors[accessor] = element;
         }
 
-        entry.Touch();
+        element.Touch();
 
-        return entry;
-    }
-
-    private IObservedBinding<TTarget> GetBinding<TSource, TTarget>(
-        Expression<Func<TSource>> valueAccessor,
-        IObservedBindingDescriptor<TSource, TTarget> bindingDescriptor)
-    {
-        this.EnsureNotDisposed();
-        var memberAccessor = MemberAccessor.Create(valueAccessor);
-        var entry = this.GetEntry(memberAccessor);
-        return entry.GetBinding(bindingDescriptor);
-    }
-
-    private T Observed<T>(MemberAccessor<T> valueAccessor, bool observeCollectionChanges)
-    {
-        this.EnsureNotDisposed();
-
-        var observedValue = this.GetEntry(valueAccessor).ObservedValue;
-
-        if (observeCollectionChanges)
+        if (ensureAccessible && !element.IsAccessible)
         {
-            observedValue.RequestCollectionObserving();
+            if (!element.IsAccessible)
+            {
+                throw new ArgumentException("Expression path is not resolvable due to some part of it being null.", nameof(valueAccessor));
+            }
         }
 
-        return observedValue.Value;
+        return element;
     }
 
     private void StateHasChanged()
     {
+        this.AssertInitialized();
+
         this.component.StateHasChanged();
     }
 
-    private void EnsureNotDisposed()
+    private void PropertyObserver_ObservedPropertyChanged(object? sender, EventArgs e)
+    {
+        this.StateHasChanged();
+    }
+
+    private void CollectionObserver_ObservedCollectionChanged(object? sender, EventArgs e)
+    {
+        this.StateHasChanged();
+    }
+
+    private void AssertNotDisposed()
     {
         if (this.isDisposed)
         {
             throw new ObjectDisposedException(nameof(ReactivityManager));
+        }
+    }
+
+    [MemberNotNull(nameof(component))]
+    private void AssertInitialized()
+    {
+        if (this.component is null)
+        {
+            throw new InvalidOperationException("Reactivity manager is not initialized.");
         }
     }
 }

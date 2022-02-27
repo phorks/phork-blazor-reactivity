@@ -5,22 +5,23 @@ using Phork.Blazor.Bindings;
 
 namespace Phork.Blazor;
 
-public abstract class ReactiveComponentBase : ComponentBase,
-    IReactiveComponent,
-    IDisposable
+public abstract class ReactiveComponentBase : ComponentBase, IReactiveComponent, IDisposable
 {
-    private readonly ReactivityManager reactivityManager;
+    [Inject]
+    protected IReactivityManager ReactivityManager { get; set; } = default!;
 
-    public ReactiveComponentBase()
+    protected override void OnInitialized()
     {
-        this.reactivityManager = new ReactivityManager(this);
+        base.OnInitialized();
+
+        this.ReactivityManager.Initialize(this);
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
 
-        this.reactivityManager.OnAfterRender();
+        this.ReactivityManager.OnAfterRender();
     }
 
     /// <inheritdoc/>
@@ -28,38 +29,36 @@ public abstract class ReactiveComponentBase : ComponentBase,
     {
     }
 
-    /// <inheritdoc cref="ReactivityManager.Observed{T}(Expression{Func{T}})"/>
+    /// <inheritdoc cref="IReactivityManager.Observed{T}(Expression{Func{T}})"/>
     protected T Observed<T>(Expression<Func<T>> valueAccessor)
     {
-        return this.reactivityManager.Observed(valueAccessor);
+        return this.ReactivityManager.Observed(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.ObservedCollection{T}(Expression{Func{T}})"/>
+    /// <inheritdoc cref="IReactivityManager.ObservedCollection{T}(Expression{Func{T}})"/>
     protected T ObservedCollection<T>(Expression<Func<T>> valueAccessor)
     {
-        return this.reactivityManager.ObservedCollection(valueAccessor);
+        return this.ReactivityManager.ObservedCollection(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.Binding{T}(Expression{Func{T}})" />
+    /// <inheritdoc cref="IReactivityManager.Binding{T}(Expression{Func{T}})" />
     protected IObservedBinding<T> Binding<T>(Expression<Func<T>> valueAccessor)
     {
-        return this.reactivityManager.Binding(valueAccessor);
+        return this.ReactivityManager.Binding(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.Binding{TSource, TTarget}(Expression{Func{TSource}}, Func{TSource, TTarget}, Func{TTarget, TSource})"/>
+    /// <inheritdoc cref="IReactivityManager.Binding{TSource, TTarget}(Expression{Func{TSource}}, Func{TSource, TTarget}, Func{TTarget, TSource})"/>
     protected IObservedBinding<TTarget> Binding<TSource, TTarget>(
         Expression<Func<TSource>> valueAccessor,
         Func<TSource, TTarget> converter,
         Func<TTarget, TSource> reverseConverter)
     {
-        return this.reactivityManager.Binding(valueAccessor, converter, reverseConverter);
+        return this.ReactivityManager.Binding(valueAccessor, converter, reverseConverter);
     }
 
     public virtual void Dispose()
     {
-        this.reactivityManager.Dispose();
-
-        GC.SuppressFinalize(this);
+        this.ReactivityManager.Dispose();
     }
 
     void IReactiveComponent.StateHasChanged()

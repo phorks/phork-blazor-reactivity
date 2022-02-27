@@ -4,9 +4,17 @@ This document contains some detailed information about the concepts of the libra
 
 There are also other documents that you may find useful:
 
-* [Getting Started](../README.md): Will guide you through the steps required to setup the library and make your components reactive.
+* [Getting Started](../README.md): Will guide you through the steps required to setup the library and use reactivity in your components.
 * [Phork.Blazor.Reactivity in Action](./IN-ACTION.md): If you are new to `INotifyPropertyChanged` and `INotifyCollectionChanged` interfaces and/or you want to see the motivation behind the concepts of this library.
 * [Phork.Blazor.Reactivity vs the Alternatives](./COMPARISON.md): If you want to see how Phork.Blazor.Reactivity is different from the alternative libraries.
+
+## Table of Contents
+
+* [Implementing IReactiveComponent](#implementing-ireactivecomponent)
+* [Value Accessor](#value-accessor)
+* [Observed Values](#observed-values)
+* [Observed Collection](#observed-collections)
+* [Observed Bindings](#observed-bindings)
 
 ## Implementing IReactiveComponent
 
@@ -17,25 +25,30 @@ Modify _YourComponent.razor.cs_ this way (if there is no cs file you can still a
 ```csharp
 using System;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
 using Phork.Blazor;
 using Phork.Blazor.Bindings;
 // your usings...
 
 public partial class YourComponent : NonReactiveComponentBase, IReactiveComponent, IDisposable
 {
-    private readonly ReactivityManager reactivityManager { get; }
+    [Inject]
+    protected IReactivityManager ReactivityManager { get; set; } = default!;
 
-    public YourComponent()
+    protected override void OnInitialized()
     {
-        reactivityManager = new ReactivityManager(this);
-        // your constructor code...
+        base.OnInitialized();
+
+        ReactivityManager.Initialize(this);
+
+        // your OnInitialized logic (if any)...
     }
 
     // your code...
 
     public virtual void Dispose()
     {
-        reactivityManager.Dispose();
+        ReactivityManager.Dispose();
 
         // your Dispose logic (if any)...
 
@@ -46,40 +59,40 @@ public partial class YourComponent : NonReactiveComponentBase, IReactiveComponen
     {
         base.OnAfterRender(firstRender);
 
-        // your OnAfterRender logic (if any)...
+        ReactivityManager.OnAfterRender();
 
-        reactivityManager.OnAfterRender();
+        // your OnAfterRender logic (if any)...
     }
 
     protected virtual void ConfigureBindings()
     {
     }
 
-    /// <inheritdoc cref="ReactivityManager.Observed{T}(Expression{Func{T}})"/>
+    /// <inheritdoc cref="IReactivityManager.Observed{T}(Expression{Func{T}})"/>
     protected T Observed<T>(Expression<Func<T>> valueAccessor)
     {
-        return reactivityManager.Observed(valueAccessor);
+        return ReactivityManager.Observed(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.ObservedCollection{T}(Expression{Func{T}})"/>
+    /// <inheritdoc cref="IReactivityManager.ObservedCollection{T}(Expression{Func{T}})"/>
     protected T ObservedCollection<T>(Expression<Func<T>> valueAccessor)
     {
-        return reactivityManager.ObservedCollection(valueAccessor);
+        return ReactivityManager.ObservedCollection(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.Binding{T}(Expression{Func{T}})" />
+    /// <inheritdoc cref="IReactivityManager.Binding{T}(Expression{Func{T}})" />
     protected IObservedBinding<T> Binding<T>(Expression<Func<T>> valueAccessor)
     {
-        return reactivityManager.Binding(valueAccessor);
+        return ReactivityManager.Binding(valueAccessor);
     }
 
-    /// <inheritdoc cref="ReactivityManager.Binding{TSource, TTarget}(Expression{Func{TSource}}, Func{TSource, TTarget}, Func{TTarget, TSource})"/>
+    /// <inheritdoc cref="IReactivityManager.Binding{TSource, TTarget}(Expression{Func{TSource}}, Func{TSource, TTarget}, Func{TTarget, TSource})"/>
     protected IObservedBinding<TTarget> Binding<TSource, TTarget>(
         Expression<Func<TSource>> valueAccessor,
         Func<TSource, TTarget> converter,
         Func<TTarget, TSource> reverseConverter)
     {
-        return reactivityManager.Binding(valueAccessor, converter, reverseConverter);
+        return ReactivityManager.Binding(valueAccessor, converter, reverseConverter);
     }
 
     void IReactiveComponent.StateHasChanged()
@@ -101,7 +114,7 @@ A value accessor of type `T` is essentially an `Expression<Func<T>>` conforming 
 
 ## Observed Values
 
-An observed value can be created by calling `Observed<T>(Expression<Func<T>>)` method on a `ReactivityManager` or a reactive component (which in turn directs the call to its internal `ReactivityManager`).
+An observed value can be created by calling `Observed<T>(Expression<Func<T>>)` method on a reactive component.
 
 `Observed` method accepts only one parameter of type `Expression<Func<T>>`. This expression has to be a [value accessor](#value-accessor).
 
@@ -111,9 +124,9 @@ When you use a `Observed` method to create an observed value with `() => Path.To
 
 ### Behavior of Observed Values
 
-When an observed value is created with `() => root.member1.member2.⋯.member{n}` value accessor, the `ReactivityManager` will scan the body of the lambda expression. If `root` implements `INotifyPropertyChanged`, its `PropertyChanged` event will be subscribed to. If the event gets raised and `e.PropertyName` equals `member1` the `ReactivityManager` will call its reactive component's `IReactiveComponent.StateHasChanged` method. For each i < n, the same thing will happen to `item{i}` in the body of the value accessor except the condition that will trigger `IReactiveComponent.StateHasChanged` will be `e.PropertyName` being equal to `item{i+1}`.
+When an observed value is created with `() => root.member1.member2.⋯.member{n}` value accessor, the library will scan the body of the lambda expression. If `root` implements `INotifyPropertyChanged`, its `PropertyChanged` event will be subscribed to. If the event gets raised and `e.PropertyName` equals `member1` the `ReactivityManager` will call its reactive component's `IReactiveComponent.StateHasChanged` method. For each i < n, the same thing will happen to `item{i}` in the body of the value accessor except the condition that will trigger `IReactiveComponent.StateHasChanged` will be `e.PropertyName` being equal to `item{i+1}`.
 
-> **Note**: Creation of observed values requires dynamic compiling of lambda expressions, and doing so may turn expensive, so `ReactivityManager` does a good job in caching created observed values while getting rid of unnecessary ones as soon as possible to avoid redundant `StateHasChanged` calls and potential memory leaks. A reactive component calls `ReactivityManager`'s `OnAfterRender` method after each rendering and this helps `ReactivityManager` clean up the observed values that were not used in that render cycle (e.g. an observed value that is inside the body of an if statement that has a false condition based on the current state of the component will not make the component re-render when it gets changed because `ReactivityManager` will consider this observed value inactive and will get rid of it).
+> **Note**: Creation of observed values requires dynamic compiling of lambda expressions, and doing so may turn expensive, so the library does a good job in caching created observed values while getting rid of unnecessary ones as soon as possible to avoid redundant `StateHasChanged` calls and potential memory leaks. A reactive component calls `ReactivityManager`'s `OnAfterRender` method after each rendering and this helps `ReactivityManager` clean up the observed values that were not used in that render cycle (e.g. an observed value that is inside the body of an if statement that has a false condition based on the current state of the component will not make the component re-render when it gets changed because `ReactivityManager` will consider this observed value inactive and will get rid of it).
 
 ### Use Cases of Observed Values
 
@@ -143,7 +156,7 @@ Dog Age Estimate: @(DateTime.Now.Year - Observed(() => Person.Dog.Birthday).Year
 @if (IsPalindrome(Observed(() => Person.Name)))
 {
     var dog = Observed(() => Person.Dog);
-    if(IsPalindrome(Observed(() => dog.Name)))
+    if(IsPalindrome(Observed(() => dog.Name))) // or IsPalindrome(Observed(() => Person.Dog.Name))
     {
         <text>Nested Congrats!</text>
     }
@@ -164,7 +177,7 @@ Dog Age Estimate: @(DateTime.Now.Year - Observed(() => Person.Dog.Birthday).Year
 
 ## Observed Collections
 
-An observed collection can be created by calling `ObservedCollection<T>(Expression<Func<T>>)` method on a `ReactivityManager` or a reactive component (which in turn directs the call to its internal `ReactivityManager`).
+An observed collection can be created by calling `ObservedCollection<T>(Expression<Func<T>>)` method on a reactive component.
 
 `ObservedCollection<T>` method accepts only one parameter of type `Expression<Func<T>>`. This expression has to be a [value accessor](#value-accessor).
 
@@ -205,7 +218,7 @@ To be able to use observed values with `@bind` directive in your components you 
 
 There are two types of observed bindings, direct bindings and converted bindings.
 
-Observed bindings can be created by the overloads of `Binding` method on a `ReactivityManager` or a reactive component (which in turn directs the call to its internal `ReactivityManager`). There are two overloads. One for direct bindings and one for converted bindings. Both of the overloads accept a [value accessor](#value-accessor) as the first parameter.
+Observed bindings can be created by the overloads of `Binding` method on a reactive component. There are two overloads. One for direct bindings and one for converted bindings. Both of the overloads accept a [value accessor](#value-accessor) as the first parameter.
 
 ### Returned Value of Observed Bindings
 
@@ -219,7 +232,7 @@ Example:
 <ChildComponent @bind-TargetParameter="Binding(...).Value">
 ```
 
-### Observed Binding Method Overloads
+### Observed Binding Methods
 
 #### 1. Direct Observed Binding
 
@@ -276,10 +289,6 @@ Example:
 
 > :warning: **Warning:** The `converter` and the `reverseConverter` delegates must be the inverse functions of each other for the binding logic to work.
 
-[](ignored) <!-- To get rid of MD028/no-blanks-blockquote -->
-
-> :warning: **Warning:** As the converter parameters in this overload have `Func` types, it may seem reasonable to use lambda expressions as their values, however, doing so will disable the `ReactivityManager`'s ability to cache bindings. Always write your conversion logic in instance or static methods and pass those as converter arguments.
-
 ### Behavior of Observed Bindings
 
 An observed binding shares [the same behavior](#behavior-of-observed-values) as observed values in that it will make the component re-render whenever it detects a property change in the value accessor.
@@ -292,4 +301,4 @@ If we create a binding like this (using any of the overloads of the `Binding` me
 
 When the `ChildComponent` raises `SomeParameterChanged` event, the new value will be set to `Path.To.Property`. Obviously if `Path.To.Property` is not settable (e.g., it represents a property without a setter or a `readonly` field) you will receive an `InvalidOperationException`.
 
-> **Note**: If converters are used in a binding, the converter will not be called every time the component renders. The binding will cache the value of the value accessor and the converted value. When the component re-renders the binding will only use your converters when the value provided by the value accessor is different than the cached one, otherwise the cached converted value will be used.
+> **Note:** Observed bindings are state-less. It means that when converters are used in a binding, every time the component renders, the `converter` will be called to convert the source value, even if the source value has not been changed since the last render. And every time the target value gets changed, the `reverseConverter` will be used to convert the target value, even if the target value is the converted value of the current source value.

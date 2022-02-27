@@ -2,7 +2,7 @@
 
 In this document we will use examples to demonstrate how using `INotifyPropertyChanged`, `INotifyCollectionChanged` combined with the power Phork.Blazor.Reactivity can reduce the amount of boilerplate code you have to write in order to bring reactivity to your components.
 
-You can check out a live demo of the examples described in this document [here](https://phorks.github.io/phork-blazor/reactivity-demo/reactivity-in-action).
+You can check out a live demo of the examples described in this document [here](https://phorks.github.io/phork-blazor-reactivity/reactivity-demo/reactivity-in-action).
 
 There are also other documents that you may find useful:
 
@@ -145,7 +145,7 @@ class PersonSkill : INotifyPropertyChanged
 }
 ```
 
-> __Unrelated Tip:__ If the amount boilerplate code we used in our property getters and setters to implement `INotifyPropertyChanged` bothers you, you can check out [Fody/PropertyChanged](https://github.com/Fody/PropertyChanged).
+> __Unrelated Tip:__ If the amount of boilerplate code in the property getters and setters to implement `INotifyPropertyChanged` bothers you, check out [Fody/PropertyChanged](https://github.com/Fody/PropertyChanged).
 
 Now that our models are capable of notifying their changes, we should change our component to react to these changes. These steps have to be done in order to get the desired results in our business card generator:
 
@@ -198,7 +198,7 @@ protected override void OnInitialized()
 }
 ```
 
-By doing so our component will work as expected but there are some problems:
+By doing so our component should work as expected, but:
 
 * What if the parent of our component decides to change the `Person` parameter of our component? We have to unsubscribe the `PropertyChanged` event of the old one and subscribe to the event of the new one.
 
@@ -269,7 +269,7 @@ Without Phork.Blazor.Reactivity we can implement `PersonNameEditor` as follows:
 }
 ```
 
-This way, the text inputs won't be synchronized, as the components will not re-render when the `Name` property of their person parameters change. Replacing `@bind="Person.Name"` by `@bind="Binding(() => Person.Name).Value"` (and adding `@inehrits ReactiveComponentBase` to the start of the file of course!) will solve the problem. It not only re-renders the component when `Person.Name` is changed -by subscribing to `Person.PropertyChanged` and waiting for changes to `Name` property just like `Observed(() => Person.Name)`- but also as `Binding(() => Person.Name).Value` is considered to be a variable -as opposed to `Observed(() => Person.Name)`- it can perfectly be the left-hand side of an assignment.
+This way, the text inputs won't be synchronized, as the components will not re-render when the `Name` property of their person parameters change. Replacing `@bind="Person.Name"` by `@bind="Binding(() => Person.Name).Value"` (and adding `@inehrits ReactiveComponentBase` to the start of the file of course!) will solve the problem. It not only re-renders the component when `Person.Name` is changed (by subscribing to `Person.PropertyChanged` and waiting for changes to `Name` property just like `Observed(() => Person.Name)`) but also as `Binding(() => Person.Name).Value` is considered to be a variable (as opposed to `Observed(() => Person.Name)`) it can perfectly be the left-hand side of an assignment.
 
 Modified version of the component that inherits from `ReactiveComponentBase` and uses Observed Bindings:
 

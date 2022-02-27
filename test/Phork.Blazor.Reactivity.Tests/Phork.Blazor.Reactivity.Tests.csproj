@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\phork-common\src\Phork.Common\Phork.Common.csproj" />
     <ProjectReference Include="..\..\src\Phork.Blazor.Reactivity\Phork.Blazor.Reactivity.csproj" />
   </ItemGroup>
 
