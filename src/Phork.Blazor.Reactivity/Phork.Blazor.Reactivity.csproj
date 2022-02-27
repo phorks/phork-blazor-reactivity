@@ -11,7 +11,7 @@
     <Description>An unopinionated Blazor state management library that utilizes INotifyPropertyChanged and INotifyCollectionChanged interfaces to automatically detect state changes in components.</Description>
     <Copyright>Copyright © 2022 Phorks</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 

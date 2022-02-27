@@ -52,7 +52,7 @@ public partial class YourComponent : NonReactiveComponentBase, IReactiveComponen
 
         // your Dispose logic (if any)...
 
-        GC.SuppressFinalize(this)
+        GC.SuppressFinalize(this);
     }
 
     protected override void OnAfterRender(bool firstRender)
