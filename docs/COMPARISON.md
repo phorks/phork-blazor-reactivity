@@ -99,9 +99,9 @@ Dog Name: @Observed(() => Person.Dog.Name)
 
 ## MvvmBlazor (v2.0.0)
 
-You can't implement `INotifyPropertyChanged` directly in your models and use them in MvvmBlazor. In order for our models to be used with MvvmBlazor, we should make them inherit from `MvvmBlazor.ViewModel.ViewModelBase` (which implements `INotifyPropertyChanged`). This is not desirable as it makes our models dependent on MvvmBlazor. MvvmBlazor is supposed to be used in _presentation layer_, using this in our _data layer_ makes it platform-dependent!
+You can't implement `INotifyPropertyChanged` directly in your models and use them in MvvmBlazor. In order for your models to be used with MvvmBlazor, you should make them inherit from `MvvmBlazor.ViewModel.ViewModelBase` (which implements `INotifyPropertyChanged`). This is not desirable as it makes your models dependent on MvvmBlazor. MvvmBlazor is supposed to be used in the _presentation layer_, using this in your _data layer_ makes it platform-dependent!
 
-Nevertheless, if we change our models to inherit from `ViewModelBase`, we can write `ParentComponent` as follows to make it reactive:
+Nevertheless, if you change your models to inherit from `ViewModelBase`, you can write `ParentComponent` as follows to make it reactive:
 
 ```html
 @inherits MvvmComponentBase
@@ -124,7 +124,7 @@ Dog Name: @Bind(Person.Dog, x => x.Name)
 
 ## ChildComponent Operation Results
 
-You can use the demo application to see the results: [Phork.Blazor.Reactivity](https://phorks.github.io/phork-blazor/reactivity-demo/comparison/phork-blazor-reactivity), [MvvmBlazor](https://phorks.github.io/phork-blazor/reactivity-demo/comparison/mvvmblazor).
+You can use the demo application to see the results: [Phork.Blazor.Reactivity](https://phorks.github.io/phork-blazor-reactivity/reactivity-demo/comparison/phork-blazor-reactivity), [MvvmBlazor](https://phorks.github.io/phork-blazor-reactivity/reactivity-demo/comparison/mvvmblazor).
 
 The table below compares the reaction of `ParentComponent` in Phork.Blazor.Reactivity and MvvmBlazor to the operations performed by `ChildComponent`:
 
