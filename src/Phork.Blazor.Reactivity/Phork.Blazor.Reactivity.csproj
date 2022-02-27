@@ -12,6 +12,7 @@
     <Copyright>Copyright © 2022 Phorks</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Version>1.1.0</Version>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
