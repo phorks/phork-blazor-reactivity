@@ -120,12 +120,12 @@ public class NotifyPropertyChangedElementTests : LifecycleElementTests
     {
         this.sut.Observe(nameof(InnerBindable.StringValue));
 
-        // Observe another property to stop the element from being disposed of after the second cycle
+        // Observe another property to stop the element from being disposed after the second cycle
         this.sut.Observe(nameof(InnerBindable.NumberValue));
 
         this.sut.NotifyCycleEnded();
 
-        // This ensures the element won't be disposed of due to the lack of active properties
+        // This ensures the element won't be disposed due to the lack of active properties
         this.sut.Observe(nameof(InnerBindable.NumberValue));
 
         this.sut.NotifyCycleEnded();

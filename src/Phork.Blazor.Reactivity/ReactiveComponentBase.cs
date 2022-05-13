@@ -5,23 +5,31 @@ using Phork.Blazor.Bindings;
 
 namespace Phork.Blazor;
 
+/// <summary>
+/// Provides the base class for reactive components. Alternatively, components may implement <see
+/// cref="IReactiveComponent"/> directly.
+/// </summary>
 public abstract class ReactiveComponentBase : ComponentBase, IReactiveComponent, IDisposable
 {
+    /// <summary>
+    /// Gets the reactivity manager of the component.
+    /// </summary>
     [Inject]
-    protected IReactivityManager ReactivityManager { get; set; } = default!;
+    protected IReactivityManager ReactivityManager { get; private set; } = default!;
 
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
         this.ReactivityManager.Initialize(this);
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
-
-        this.ReactivityManager.OnAfterRender();
     }
 
     /// <inheritdoc/>
@@ -41,7 +49,7 @@ public abstract class ReactiveComponentBase : ComponentBase, IReactiveComponent,
         return this.ReactivityManager.ObservedCollection(valueAccessor);
     }
 
-    /// <inheritdoc cref="IReactivityManager.Binding{T}(Expression{Func{T}})" />
+    /// <inheritdoc cref="IReactivityManager.Binding{T}(Expression{Func{T}})"/>
     protected IObservedBinding<T> Binding<T>(Expression<Func<T>> valueAccessor)
     {
         return this.ReactivityManager.Binding(valueAccessor);
@@ -56,9 +64,19 @@ public abstract class ReactiveComponentBase : ComponentBase, IReactiveComponent,
         return this.ReactivityManager.Binding(valueAccessor, converter, reverseConverter);
     }
 
-    public virtual void Dispose()
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting
+    /// unmanaged resources.
+    /// </summary>
+    /// <param name="disposing">
+    /// A <see cref="bool"/> value indicating whether the method is called from <see cref="IDisposable.Dispose"/>.
+    /// </param>
+    protected virtual void Dispose(bool disposing)
     {
-        this.ReactivityManager.Dispose();
+        if (disposing)
+        {
+            this.ReactivityManager.Dispose();
+        }
     }
 
     void IReactiveComponent.StateHasChanged()

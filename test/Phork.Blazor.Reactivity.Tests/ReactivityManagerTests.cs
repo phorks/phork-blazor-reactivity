@@ -177,7 +177,7 @@ public class ReactivityManagerTests : IDisposable
     {
         this.Initialize();
 
-        this.sut.OnAfterRender();
+        this.sut.NotifyCycleEnded();
 
         this.component.Verify(x => x.ConfigureBindings());
     }
@@ -187,7 +187,7 @@ public class ReactivityManagerTests : IDisposable
     {
         this.Initialize();
 
-        this.sut.OnAfterRender();
+        this.sut.NotifyCycleEnded();
 
         this.propertyOberver.Verify(x => x.OnAfterRender());
     }
@@ -197,7 +197,7 @@ public class ReactivityManagerTests : IDisposable
     {
         this.Initialize();
 
-        this.sut.OnAfterRender();
+        this.sut.NotifyCycleEnded();
 
         this.collectionObserver.Verify(x => x.OnAfterRender());
     }
@@ -210,13 +210,13 @@ public class ReactivityManagerTests : IDisposable
         this.sut.Observed(() => this.bindable.Inner.StringValue);
         this.sut.Observed(() => this.bindable.Inner.NumberValue);
 
-        this.sut.OnAfterRender();
+        this.sut.NotifyCycleEnded();
 
         this.propertyOberver.Invocations.Clear();
 
         this.sut.Observed(() => this.bindable.Inner.StringValue);
 
-        this.sut.OnAfterRender();
+        this.sut.NotifyCycleEnded();
 
         this.propertyOberver.Verify(x => x.Observe(this.bindable, nameof(RootBindable.Inner)), Times.Once);
         this.propertyOberver.Verify(x => x.Observe(this.bindable.Inner, nameof(InnerBindable.StringValue)), Times.Once);
@@ -273,7 +273,7 @@ public class ReactivityManagerTests : IDisposable
     [Fact]
     public void OnAfterRender_ShouldThrowInvalidOperationException_WhenNotInitialized()
     {
-        Assert.Throws<InvalidOperationException>(() => this.sut.OnAfterRender());
+        Assert.Throws<InvalidOperationException>(() => this.sut.NotifyCycleEnded());
     }
 
     #endregion Not Initialized Exception Tests
@@ -325,7 +325,7 @@ public class ReactivityManagerTests : IDisposable
     {
         this.sut.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => this.sut.OnAfterRender());
+        Assert.Throws<ObjectDisposedException>(() => this.sut.NotifyCycleEnded());
     }
 
     #endregion Disposed Exception Tests

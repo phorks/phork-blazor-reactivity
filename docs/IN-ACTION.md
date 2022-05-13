@@ -1,6 +1,6 @@
 # Phork.Blazor.Reactivity in Action
 
-In this document we will use examples to demonstrate how using `INotifyPropertyChanged`, `INotifyCollectionChanged` combined with the power Phork.Blazor.Reactivity can reduce the amount of boilerplate code you have to write in order to bring reactivity to your components.
+In this document we will use examples to demonstrate how using `INotifyPropertyChanged`, `INotifyCollectionChanged` combined with the power of Phork.Blazor.Reactivity can reduce the amount of boilerplate code we have to write in order to bring reactivity to our components.
 
 You can check out a live demo of the examples described in this document [here](https://phorks.github.io/phork-blazor-reactivity/reactivity-demo/reactivity-in-action).
 

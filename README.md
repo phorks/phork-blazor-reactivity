@@ -22,19 +22,19 @@ There are also other documents that you may find useful:
 
 ## Table of Contents
 
-- [Phork.Blazor.Reactivity](#phorkblazorreactivity)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [Install the NuGet Package](#install-the-nuget-package)
-    - [Register Services](#register-services)
-    - [Add the Namespace](#add-the-namespace)
-    - [Make Your Component Reactive](#make-your-component-reactive)
-    - [Use Reactivity](#use-reactivity)
-      - [Observed Values](#observed-values)
-      - [Observed Collections](#observed-collections)
-      - [Observed Bindings](#observed-bindings)
-      - [Configure Reactivity in Code Behind](#configure-reactivity-in-code-behind)
-  - [Limitations and Considerations](#limitations-and-considerations)
+* [Phork.Blazor.Reactivity](#phorkblazorreactivity)
+  * [Table of Contents](#table-of-contents)
+  * [Getting Started](#getting-started)
+    * [Install the NuGet Package](#install-the-nuget-package)
+    * [Register Services](#register-services)
+    * [Add the Namespace](#add-the-namespace)
+    * [Make Your Component Reactive](#make-your-component-reactive)
+    * [Use Reactivity](#use-reactivity)
+      * [Observed Values](#observed-values)
+      * [Observed Collections](#observed-collections)
+      * [Observed Bindings](#observed-bindings)
+      * [Configure Reactivity in Code Behind](#configure-reactivity-in-code-behind)
+  * [Limitations and Considerations](#limitations-and-considerations)
 
 ## Getting Started
 
@@ -84,7 +84,7 @@ Insert the following line at the start of the Razor file of your component:
 
 [](ignored) <!-- To get rid of MD028/no-blanks-blockquote -->
 
-> **Note:** If your component has a direct base type other than the default `ComponentBase`, you can still take advantage of the library. All you need to do is to implement `IReactiveComponent` in your component as instructed [here](./docs/DETAILS.md#implementing-ireactivecomponent).
+> **Note:** If your component has a direct base type other than the default `ComponentBase`, you can still take advantage of the library (as long as `ComponentBase` is still an indirect base type of the component). All you need to do, is to implement `IReactiveComponent` in your component as instructed [here](./docs/DETAILS.md#implementing-ireactivecomponent).
 
 ### Use Reactivity
 

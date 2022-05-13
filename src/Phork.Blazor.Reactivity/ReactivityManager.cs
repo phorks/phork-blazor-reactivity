@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Phork.Blazor.Bindings;
 using Phork.Blazor.Expressions;
+using Phork.Blazor.Helpers;
 using Phork.Blazor.Lifecycle;
 using Phork.Blazor.Services;
 
@@ -36,7 +39,8 @@ internal sealed class ReactivityManager : IReactivityManager
     }
 
     /// <inheritdoc/>
-    public void Initialize(IReactiveComponent component)
+    public void Initialize<TComponent>(TComponent component)
+        where TComponent : ComponentBase, IReactiveComponent
     {
         ArgumentNullException.ThrowIfNull(component);
 
@@ -47,11 +51,13 @@ internal sealed class ReactivityManager : IReactivityManager
             throw new InvalidOperationException("Reactivity manager is already initialized.");
         }
 
+        this.ConfigureComponentBase(component);
+
         this.component = component;
     }
 
     /// <inheritdoc/>
-    public void OnAfterRender()
+    public void NotifyCycleEnded()
     {
         this.AssertNotDisposed();
         this.AssertInitialized();
@@ -62,6 +68,12 @@ internal sealed class ReactivityManager : IReactivityManager
 
         this.propertyObserver.OnAfterRender();
         this.collectionObserver.OnAfterRender();
+    }
+
+    /// <inheritdoc/>
+    [Obsolete]
+    public void OnAfterRender()
+    {
     }
 
     /// <inheritdoc/>
@@ -203,6 +215,19 @@ internal sealed class ReactivityManager : IReactivityManager
         if (this.component is null)
         {
             throw new InvalidOperationException("Reactivity manager is not initialized.");
+        }
+    }
+
+    private void ConfigureComponentBase(ComponentBase componentBase)
+    {
+        var oldRenderFragment = ComponentBaseHelper.GetRenderFragment(componentBase);
+
+        ComponentBaseHelper.SetRenderFragment(componentBase, NewRenderFragment);
+
+        void NewRenderFragment(RenderTreeBuilder builder)
+        {
+            oldRenderFragment(builder);
+            this.NotifyCycleEnded();
         }
     }
 }

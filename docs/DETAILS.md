@@ -18,7 +18,7 @@ There are also other documents that you may find useful:
 
 ## Implementing IReactiveComponent
 
-If your component has a direct base type other than the default `ComponentBase` and you are not able to make the direct base type inherit from `ReactiveComponentBase` you can still use reactivity in your component by implementing `IReactiveComponent`.
+If your component has a direct base type other than the default `ComponentBase` and you are not able to make the direct base type inherit from `ReactiveComponentBase` you can still use reactivity in your component by implementing `IReactiveComponent`. (Provided that `ComponentBase` is still an indirect base type of the component.)
 
 Modify _YourComponent.razor.cs_ this way (if there is no cs file you can still add these functionalities in the Razor file):
 
@@ -33,7 +33,7 @@ using Phork.Blazor.Bindings;
 public partial class YourComponent : NonReactiveComponentBase, IReactiveComponent, IDisposable
 {
     [Inject]
-    protected IReactivityManager ReactivityManager { get; set; } = default!;
+    protected IReactivityManager ReactivityManager { get; private set; } = default!;
 
     protected override void OnInitialized()
     {
@@ -46,22 +46,12 @@ public partial class YourComponent : NonReactiveComponentBase, IReactiveComponen
 
     // your code...
 
-    public virtual void Dispose()
+    public void Dispose() // Optionally implement dispose pattern
     {
-        ReactivityManager.Dispose();
-
         // your Dispose logic (if any)...
 
+        ReactivityManager.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
-
-        ReactivityManager.OnAfterRender();
-
-        // your OnAfterRender logic (if any)...
     }
 
     protected virtual void ConfigureBindings()
@@ -126,7 +116,7 @@ When you use a `Observed` method to create an observed value with `() => Path.To
 
 When an observed value is created with `() => root.member1.member2.⋯.member{n}` value accessor, the library will scan the body of the lambda expression. If `root` implements `INotifyPropertyChanged`, its `PropertyChanged` event will be subscribed to. If the event gets raised and `e.PropertyName` equals `member1` the `ReactivityManager` will call its reactive component's `IReactiveComponent.StateHasChanged` method. For each i < n, the same thing will happen to `item{i}` in the body of the value accessor except the condition that will trigger `IReactiveComponent.StateHasChanged` will be `e.PropertyName` being equal to `item{i+1}`.
 
-> **Note**: Creation of observed values requires dynamic compiling of lambda expressions, and doing so may turn expensive, so the library does a good job in caching created observed values while getting rid of unnecessary ones as soon as possible to avoid redundant `StateHasChanged` calls and potential memory leaks. A reactive component calls `ReactivityManager`'s `OnAfterRender` method after each rendering and this helps `ReactivityManager` clean up the observed values that were not used in that render cycle (e.g. an observed value that is inside the body of an if statement that has a false condition based on the current state of the component will not make the component re-render when it gets changed because `ReactivityManager` will consider this observed value inactive and will get rid of it).
+> **Note**: Creation of observed values requires dynamic compiling of lambda expressions, and doing so may turn expensive, so the library does a good job in caching created observed values while getting rid of unnecessary ones as soon as possible to avoid redundant `StateHasChanged` calls and potential memory leaks. A reactive component calls `ReactivityManager`'s `Notify` method after each rendering and this helps `ReactivityManager` clean up the observed values that were not used in that render cycle (e.g. an observed value that is inside the body of an if statement that has a false condition based on the current state of the component will not make the component re-render when it gets changed because `ReactivityManager` will consider this observed value inactive and will get rid of it).
 
 ### Use Cases of Observed Values
 

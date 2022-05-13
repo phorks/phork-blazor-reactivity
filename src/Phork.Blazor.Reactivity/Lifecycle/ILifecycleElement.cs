@@ -9,7 +9,7 @@ namespace Phork.Blazor.Lifecycle;
 /// <remarks>
 /// The element will be created the first time it gets accessed by the render tree. It is supposed
 /// to be reused in consequent renders. If in any render cycle the element is not considered to be
-/// active (i.e, the code that uses the element is out of reach) the element will be disposed of and
+/// active (i.e, the code that uses the element is out of reach) the element will be disposed and
 /// become unusable.
 /// </remarks>
 internal interface ILifecycleElement : IDisposable
@@ -22,27 +22,25 @@ internal interface ILifecycleElement : IDisposable
     bool IsActive { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the element is disposed of. (i.e, after each render, every
-    /// inactive element will be disposed of. Disposed elements are not supposed to be used again.
+    /// Gets a value indicating whether the element is disposed. (i.e, after each render, every
+    /// inactive element will be disposed. Disposed elements are not supposed to be used again.
     /// </summary>
     bool IsDisposed { get; }
 
     /// <summary>
     /// Called every time the element is accessed by the render tree.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">Thrown if the element is disposed of.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the element is disposed.</exception>
     void Touch();
 
     /// <summary>
     /// Notifies the element that a render cycle has been ended.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">
-    /// Thrown if the element is already disposed of.
-    /// </exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the element is already disposed.</exception>
     /// <remarks>
     /// If this element has not been active in the current render cycle (i.e., <see cref="Touch"/>
     /// has not been called at least once since the creation of the element or the previous call of
-    /// the method), it will be disposed of. Otherwise, the element will be marked as inactive (i.e,
+    /// the method), it will be disposed. Otherwise, the element will be marked as inactive (i.e,
     /// <see cref="IsActive"/> will become <see langword="false"/>) waiting for reactivation.
     /// </remarks>
     void NotifyCycleEnded();
