@@ -165,7 +165,7 @@ You can use observed collections if you need your component to react to `Collect
 ```html
 @foreach(var skill in ObservedCollection(() => Person.Skills))
 {
-    <text>@Observed(skill.Name)</text>
+    <text>@Observed(() => skill.Name)</text>
 }
 ```
 
