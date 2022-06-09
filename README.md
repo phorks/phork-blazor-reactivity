@@ -117,7 +117,7 @@ This way, if the person changes its dog object or the name of its existing dog (
 Since the `Observed` method returns the value of the expression, it can be mixed with your code seamlessly:
 
 ```html
-Dog Age Estimate: @(DateTime.Now.Year - Observed(() => Person.Dog.Birthday).Year)
+Dog Age Estimate: @(DateTime.Now.Year - Observed(() => Person.Dog.Birthdate).Year)
 
 -----
 
@@ -188,10 +188,10 @@ Here, not only any external change (outside of the Blazor events) to `Person.Nam
 Since unlike observed values, observed bindings **do not return the value of the expression directly**, they cannot be mixed with your custom logic as easily as observed values could. Converters can be used if you want a conversion to occur between the source and the target value:
 
 ```html
-<input type="date" @bind-value="Binding(() => Person.Birthday, ConvertToDateTime, ConvertToDateOnly).Value" />
+<input type="date" @bind-value="Binding(() => Person.Birthdate, ConvertToDateTime, ConvertToDateOnly).Value" />
 
 @code {
-    // Person parameter (Person.Birthday is DateOnly)
+    // Person parameter (Person.Birthdate is DateOnly)
 
     private DateTime ConvertToDateTime(DateOnly date)
     {
