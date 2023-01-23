@@ -177,7 +177,7 @@ When you use a `ObservedCollection` method to create an observed collection with
 
 ### Behavior of Observed Collections
 
-Observed collections have the exact [behavior](#behavior-of-observed-values) of observed values in that they will make the component re-render whenever they detect a property change in the value accessor. On top of that, they are aware of `INotifyCollectionChanged` interface. If the returned value by the value accessor implements `INotifyCollectionChanged` the observed collection will make the component re-render every time the collection raises a `CollectionChanged` event handler.
+Observed collections have the exact [behavior](#behavior-of-observed-values) of observed values in that they will make the component re-render whenever they detect a property change in the value accessor. On top of that, they are aware of `INotifyCollectionChanged` interface. If the returned value by the value accessor implements `INotifyCollectionChanged` the observed collection will make the component re-render every time the collection raises a `CollectionChanged` event.
 
 ### Use Cases of Observed Collection
 
