@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Phork.Blazor.Lifecycle;
 
@@ -8,7 +8,7 @@ namespace Phork.Blazor.Services;
 internal class CollectionObserver : ICollectionObserver
 {
     private bool isDisposed;
-    private readonly Dictionary<INotifyCollectionChanged, NotifyCollectionChangedElement> elements = new();
+    private readonly ConcurrentDictionary<INotifyCollectionChanged, NotifyCollectionChangedElement> elements = new();
 
     public event EventHandler? ObservedCollectionChanged;
 
@@ -16,12 +16,7 @@ internal class CollectionObserver : ICollectionObserver
     {
         this.AssertNotDisposed();
 
-        if (!this.elements.TryGetValue(collection, out var element))
-        {
-            element = new NotifyCollectionChangedElement(collection, this.OnElementCollectionChanged);
-
-            this.elements[collection] = element;
-        }
+        var element = this.elements.GetOrAdd(collection, c => new NotifyCollectionChangedElement(collection, this.OnElementCollectionChanged));
 
         element.Touch();
     }

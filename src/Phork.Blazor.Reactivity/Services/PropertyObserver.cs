@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using Phork.Blazor.Lifecycle;
 
@@ -9,7 +9,7 @@ internal class PropertyObserver : IPropertyObserver
 {
     private bool isDisposed;
 
-    private readonly Dictionary<INotifyPropertyChanged, NotifyPropertyChangedElement> elements = new();
+    private readonly ConcurrentDictionary<INotifyPropertyChanged, NotifyPropertyChangedElement> elements = new();
 
     public event EventHandler? ObservedPropertyChanged;
 
@@ -17,13 +17,8 @@ internal class PropertyObserver : IPropertyObserver
     {
         this.AssertNotDisposed();
 
-        if (!this.elements.TryGetValue(notifier, out var element))
-        {
-            element = new NotifyPropertyChangedElement(notifier, this.OnElementPropertyChanged);
-
-            this.elements[notifier] = element;
-        }
-
+        var element = this.elements.GetOrAdd(notifier, n => new NotifyPropertyChangedElement(notifier, this.OnElementPropertyChanged));
+        
         element.Observe(propertyName);
     }
 
