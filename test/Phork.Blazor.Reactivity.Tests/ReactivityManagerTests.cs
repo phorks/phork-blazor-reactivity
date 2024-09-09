@@ -10,7 +10,7 @@ public class ReactivityManagerTests : IDisposable
 {
     private readonly Mock<IPropertyObserver> propertyOberver = new();
     private readonly Mock<ICollectionObserver> collectionObserver = new();
-    private readonly Mock<IReactiveComponent> component = new();
+    private readonly Mock<ReactiveComponentBase> component = new();
 
     private readonly ReactivityManager sut;
 
@@ -159,7 +159,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.propertyOberver.Raise(x => x.ObservedPropertyChanged += null, EventArgs.Empty);
 
-        this.component.Verify(x => x.StateHasChanged(), Times.Once);
+        this.component.Verify(x => ((IReactiveComponent)x).StateHasChanged(), Times.Once);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.collectionObserver.Raise(x => x.ObservedCollectionChanged += null, EventArgs.Empty);
 
-        this.component.Verify(x => x.StateHasChanged(), Times.Once);
+        this.component.Verify(x => ((IReactiveComponent)x).StateHasChanged(), Times.Once);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.sut.NotifyCycleEnded();
 
-        this.component.Verify(x => x.ConfigureBindings());
+        this.component.Verify(x => ((IReactiveComponent)x).ConfigureBindings());
     }
 
     [Fact]
