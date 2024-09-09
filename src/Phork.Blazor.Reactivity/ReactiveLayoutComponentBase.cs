@@ -22,6 +22,6 @@ public abstract class ReactiveLayoutComponentBase : ReactiveComponentBase
     // Derived instances of LayoutComponentBase do not appear in any statically analyzable
     // calls of OpenComponent<T> where T is well-known. Consequently we have to explicitly provide a hint to the trimmer to preserve
     // properties.
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(LayoutComponentBase))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ReactiveLayoutComponentBase))]
     public override Task SetParametersAsync(ParameterView parameters) => base.SetParametersAsync(parameters);
 }
