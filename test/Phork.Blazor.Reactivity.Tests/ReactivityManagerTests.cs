@@ -12,14 +12,14 @@ public class ReactivityManagerTests : IDisposable
     private readonly Mock<ICollectionObserver> collectionObserver = new();
     private readonly Mock<ReactiveComponentBase> component = new();
 
+    private readonly Mock<IReactiveComponent> reactiveComponent;
     private readonly ReactivityManager sut;
-
     private readonly RootBindable bindable;
 
     public ReactivityManagerTests()
     {
+        this.reactiveComponent = component.As<IReactiveComponent>();
         this.sut = new(this.propertyOberver.Object, this.collectionObserver.Object);
-
         this.bindable = Values.CreateRootBindable();
     }
 
@@ -159,7 +159,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.propertyOberver.Raise(x => x.ObservedPropertyChanged += null, EventArgs.Empty);
 
-        this.component.Verify(x => ((IReactiveComponent)x).StateHasChanged(), Times.Once);
+        this.reactiveComponent.Verify(x => x.StateHasChanged(), Times.Once);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.collectionObserver.Raise(x => x.ObservedCollectionChanged += null, EventArgs.Empty);
 
-        this.component.Verify(x => ((IReactiveComponent)x).StateHasChanged(), Times.Once);
+        this.reactiveComponent.Verify(x => x.StateHasChanged(), Times.Once);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class ReactivityManagerTests : IDisposable
 
         this.sut.NotifyCycleEnded();
 
-        this.component.Verify(x => ((IReactiveComponent)x).ConfigureBindings());
+        this.reactiveComponent.Verify(x => x.ConfigureBindings());
     }
 
     [Fact]
