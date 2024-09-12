@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MvvmBlazor.Extensions;
 using Phork.Blazor;
 using ReactivityDemo;
 

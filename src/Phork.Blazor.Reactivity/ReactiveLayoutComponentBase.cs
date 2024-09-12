@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Components;
 namespace Phork.Blazor;
 
 /// <summary>
-/// Provides the base class for reactive components. Alternatively, components may implement <see
-/// cref="IReactiveComponent"/> directly.
+/// Provides the base class for reactive layouts. 
+/// Alternatively, components may implement <see cref="IReactiveComponent"/> directly for more granular control.
 /// </summary>
+
 public abstract class ReactiveLayoutComponentBase : ReactiveComponentBase
 {
     internal const string BodyPropertyName = nameof(Body);
@@ -19,7 +20,7 @@ public abstract class ReactiveLayoutComponentBase : ReactiveComponentBase
     public RenderFragment? Body { get; set; }
 
     /// <inheritdoc />
-    // Derived instances of LayoutComponentBase do not appear in any statically analyzable
+    // Derived instances of ReactiveLayoutComponentBase do not appear in any statically analyzable
     // calls of OpenComponent<T> where T is well-known. Consequently we have to explicitly provide a hint to the trimmer to preserve
     // properties.
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ReactiveLayoutComponentBase))]
