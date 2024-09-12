@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Components;
 namespace Phork.Blazor;
 
 /// <summary>
-/// Provides the base class for reactive components. Alternatively, components may implement <see
-/// cref="IReactiveComponent"/> directly.
+/// Serves as the base class for reactive layouts. 
+/// Alternatively, components may implement <see cref="IReactiveComponent"/> directly for more granular control.
 /// </summary>
+
 public abstract class ReactiveLayoutComponentBase : ReactiveComponentBase
 {
     internal const string BodyPropertyName = nameof(Body);
